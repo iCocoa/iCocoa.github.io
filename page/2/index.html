@@ -81,7 +81,7 @@
 <meta name="keywords" content="iOS,Android,app,developer,移动开发,JavaScript,html5,NodeJs,python">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Hansen Wu&#39;s blog">
-<meta property="og:url" content="http://redscarf.me/index.html">
+<meta property="og:url" content="http://redscarf.me/page/2/index.html">
 <meta property="og:site_name" content="Hansen Wu&#39;s blog">
 <meta property="og:description" content="记录点滴">
 <meta property="og:locale" content="zh-Hans">
@@ -120,7 +120,7 @@
 
 
 
-  <link rel="canonical" href="http://redscarf.me/"/>
+  <link rel="canonical" href="http://redscarf.me/page/2/"/>
 
 
 
@@ -254,7 +254,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2019/12/25/ios-emptydataset-sc-analyse/">
+    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2016/10/18/ios-Hook-UIWebView-delegate-method/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Hansen Wu">
@@ -273,7 +273,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2019/12/25/ios-emptydataset-sc-analyse/" itemprop="url">ios-emptydataset-sc-analyse</a></h2>
+                <a class="post-title-link" href="/2016/10/18/ios-Hook-UIWebView-delegate-method/" itemprop="url">iOS Hook WebView 的代理方法</a></h2>
         
 
         <div class="post-meta">
@@ -285,8 +285,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-12-25T19:44:34+08:00">
-                2019-12-25
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-10-18T20:09:01+08:00">
+                2016-10-18
               </time>
             
 
@@ -304,9 +304,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2019/12/25/ios-emptydataset-sc-analyse/#comments" itemprop="discussionUrl">
+                <a href="/2016/10/18/ios-Hook-UIWebView-delegate-method/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2019/12/25/ios-emptydataset-sc-analyse/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2016/10/18/ios-Hook-UIWebView-delegate-method/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -336,11 +336,14 @@
       
         
           
-          
-          
+          最近在使用 DCloud 团队开发的 HTML5+ 来开发 Hybrid 应用。它们使用 iOS 系统原生 UIWebView 和 WKWebView 来加载资源。我们的应用有个需求，就是在 webview 加载完页面或者加载页面之前加入一些东西。比如：加载完页面后，根据 HTML 的 title 标签来设置导航栏标题。
+原生想要插手页面加载周期，只能靠代理方法。但是因为没法修改源码，所以只能找其它办法。主要思路是：使用 Method Swizzle 找出代理对象然后再换掉代理方法实现。
+以 UIWebView 为例，具体操作如下：
+第一步，通过交换 setDelegate 的实现，找到目标代
+          ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2019/12/25/ios-emptydataset-sc-analyse/#more" rel="contents">
+            <a class="btn" href="/2016/10/18/ios-Hook-UIWebView-delegate-method/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -391,7 +394,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2018/12/20/ios-wvjb-sc-analyse/">
+    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2016/10/07/ios-iOS10-userPrivacy/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Hansen Wu">
@@ -410,7 +413,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/12/20/ios-wvjb-sc-analyse/" itemprop="url">WebViewJavascriptBridge 源码剖析</a></h2>
+                <a class="post-title-link" href="/2016/10/07/ios-iOS10-userPrivacy/" itemprop="url">iOS 10 需要在 info.plist 中添加权限设置</a></h2>
         
 
         <div class="post-meta">
@@ -422,8 +425,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-20T22:21:48+08:00">
-                2018-12-20
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-10-07T22:35:29+08:00">
+                2016-10-07
               </time>
             
 
@@ -441,9 +444,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/12/20/ios-wvjb-sc-analyse/#comments" itemprop="discussionUrl">
+                <a href="/2016/10/07/ios-iOS10-userPrivacy/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/12/20/ios-wvjb-sc-analyse/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2016/10/07/ios-iOS10-userPrivacy/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -473,12 +476,40 @@
       
         
           
-          WebViewJavascriptBridge 是一个可以让 OC 与 JS 进行交互通信的第三方开源库。相比其他热门的第三方库，WebViewJavascriptBridge 代码量比较少，并且设计优雅巧妙，可以说是 “小而美”。
-WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事先注册 handler，内部维护一个消息队列。透明的 iframe HTML 元素和 webview 的 stringByEvaluatingJavaScriptFromString 是通信的关键。OC 端发消息给 JS 端比较直观，调起 stringByEvaluat
+          iOS 10 开始对隐私权限更加严格, 如需使用隐私权限需要在工程的 info.plist 文件中声明,如果不声明程序在调用隐私权限（如相机）时应用程序会崩溃。
+
+key 可以从下拉列表选择，value 为弹框提示文字（类型 String）
+
+
+
+权限名称
+Key 值
+
+
+
+
+通讯录
+NSContactsUsageDescription
+
+
+麦克风
+NSMicrophoneUsageDescription
+
+
+相册
+NSPhotoLibraryUsageDescription
+
+
+相机
+NSCameraUsageDescription
+
+
+持续获取地理位置
+NSLocationAlwaysUs
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/12/20/ios-wvjb-sc-analyse/#more" rel="contents">
+            <a class="btn" href="/2016/10/07/ios-iOS10-userPrivacy/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -529,7 +560,7 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2018/07/23/ios-remote-pack/">
+    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2015/01/05/ios-GCD/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Hansen Wu">
@@ -548,7 +579,7 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/07/23/ios-remote-pack/" itemprop="url">iOS 远程打包脚本制作</a></h2>
+                <a class="post-title-link" href="/2015/01/05/ios-GCD/" itemprop="url">Grand Central Dispatch</a></h2>
         
 
         <div class="post-meta">
@@ -560,8 +591,8 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-23T20:00:50+08:00">
-                2018-07-23
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-01-05T20:13:18+08:00">
+                2015-01-05
               </time>
             
 
@@ -579,9 +610,9 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/07/23/ios-remote-pack/#comments" itemprop="discussionUrl">
+                <a href="/2015/01/05/ios-GCD/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/23/ios-remote-pack/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2015/01/05/ios-GCD/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -611,12 +642,12 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
       
         
           
-          在 iOS 开发中，一般打发布包都是在本地打包，也就是工程师在自己开发电脑上使用 Xcode 编译并导出安装包来进行发布，为了提高效率可能会制作一些自动化打包脚本。本文聊的是远程打包的内容，通过资源拷贝及参数替换然后编译完成打包。
-由于 HTML5 跨平台的特点，很多技术团队考虑到代码复用，在部分模块中会采用 h5 来描述界面。甚至有些不需要太复杂交互的 app，全部界面采用 h5 来编写，也就是一个 web 工程。对于大部分现有的 web 工程，能打包成 app 就已经满足了业务诉求。DCloud 团队开发的 HBuilder（IDE）工具中提供了云打包的功能，用起来很方便，简单的说，就是把
+          GCD（Grand Central Dispatch）是异步执行任务的技术之一。一般将应用程序中记述的线程管理用的代码在系统级中实现。开发者只需要定义想执行的任务并追加到适当的 Dispatch Queue 中，GCD 就能生成必要的线程并计划执行任务。由于线程管理是作为系统的一部分来实现的，因此可统一管理，也可执行任务，这样就比以前的线程更有效率。
+123456789101112131415161718dispatch_queue_t queue = dispatch_queue_create(&quot;myQueue&quot;, DISPATCH_QUEUE_CONCURRENT);d
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/07/23/ios-remote-pack/#more" rel="contents">
+            <a class="btn" href="/2015/01/05/ios-GCD/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -667,7 +698,7 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2018/07/10/bad-door/">
+    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2014/10/15/ios-AutoLayout/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Hansen Wu">
@@ -686,7 +717,7 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/07/10/bad-door/" itemprop="url">门是“推”还是“拉”</a></h2>
+                <a class="post-title-link" href="/2014/10/15/ios-AutoLayout/" itemprop="url">Auto Layout 知识点梳理</a></h2>
         
 
         <div class="post-meta">
@@ -698,8 +729,8 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-10T20:16:26+08:00">
-                2018-07-10
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-10-15T22:29:37+08:00">
+                2014-10-15
               </time>
             
 
@@ -717,9 +748,9 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/07/10/bad-door/#comments" itemprop="discussionUrl">
+                <a href="/2014/10/15/ios-AutoLayout/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/07/10/bad-door/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2014/10/15/ios-AutoLayout/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -749,18 +780,20 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
       
         
           
-          最近公司办公区搞装修，往过道加了一道门。
+          视图需要有确定的位置与大小才能正确显示在屏幕上。Auto Layout 使用对齐矩阵来确定视图的位置与大小，也就是所谓的约束。我们创建的每一条规则都规定了界面的一部分与另一部分的关系，某一部分可以由另一部分计算得出结果。
+y = ax + b; 是一种线性关系。
+创建约束的常见的方式：
 
-我每次进出这道门都犹豫一下，该“推”还是“拉”，接着是看字操作。实在是记不住，有一回走得急反着用差点撞到人。多次推拉之后，今天下午再次用这个门，想了一下有没有办法让我省去判断的时间，快速通过。然后我就想到了把另一边的门把手拆掉，没有把手的自然不会想到去拉它。我把这个想法告诉了坐我对面的工程师，他笑了一下说：“你可以跟行政同事提下建议，兴许会采纳”。（更新：一个星期后，行政同事意识到这个问题，并采取了措施，把 “推” 和 “拉” 两张贴纸调换过来。&#x1f602;）
-下班路上，特别留意了，星巴克
+NSLayoutConstraint
+VFS
+Xib
 
-麦当劳
-
-两家店门都只是简单地贴了 “推、”拉“ 两
+第一种，可以在(Interface Builder)IB中布局约束，并且根据需求自定义它们。
+第二种，可以使用代码创建单个约束。NSLayoutConstraint 类提供constraintWithItem:attribute:relatedBy:to
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/07/10/bad-door/#more" rel="contents">
+            <a class="btn" href="/2014/10/15/ios-AutoLayout/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -811,7 +844,7 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2018/06/09/android-GradleBuild/">
+    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2014/09/22/ios-ARC/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Hansen Wu">
@@ -830,7 +863,7 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/06/09/android-GradleBuild/" itemprop="url">Android Gradle 注入编译变量</a></h2>
+                <a class="post-title-link" href="/2014/09/22/ios-ARC/" itemprop="url">ARC</a></h2>
         
 
         <div class="post-meta">
@@ -842,8 +875,8 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-09T12:36:16+08:00">
-                2018-06-09
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-09-22T21:22:25+08:00">
+                2014-09-22
               </time>
             
 
@@ -861,9 +894,9 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/06/09/android-GradleBuild/#comments" itemprop="discussionUrl">
+                <a href="/2014/09/22/ios-ARC/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/06/09/android-GradleBuild/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2014/09/22/ios-ARC/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -893,15 +926,25 @@ WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事
       
         
           
-          最近为了制作 Android 应用打包脚本，学习了一下 gradle。Gradle 构建系统语法简洁、功能强大、配置灵活，笔者只是把它当作一个构建工具来使用，基于它所提供的便利制作可以修改版本号、编译号、id 及导入证书的脚本。
-对于一个项目或者一个工程，Gradle 可以定义多个构建任务，debug 和 release 是常见的两个构建任务，用户还可以根据需要自定义自己的构建任务，如测试构建任务和预发布构建任务，甚至是针对不同发布渠道的构建任务。这里只用到 debug 任务。
-gradle 命令行支持传入自定义参数，并在编译过程注入这些参数。
-修改 appid 及 版本号
-修改 build.
+          
+“我一直想拥有和控制我们所做的主要技术。”   ——Steve Jobs
+
+什么是自动引用计数自动引用计数（ARC，Automatic Reference Counting）是指内存管理中对引用采取自动计数的技术。要使用 ARC，需要满足以下条件：
+
+使用 Xcode4.2 或以上版本
+使用 LLVM 编译器 3.0 或以上版本
+编译器选项中设置 ARC 有效
+
+生活例子：办公室开关灯
+
+最早进入办公室的人开灯。 count = 1
+之后进入办公室的人，需要照明。 count = 2
+下班离开办公室的人，不需要照明。 count = 1
+最后离开办公室的人关灯。（此时已无人需要照明） cou
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/06/09/android-GradleBuild/#more" rel="contents">
+            <a class="btn" href="/2014/09/22/ios-ARC/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -952,7 +995,7 @@ gradle 命令行支持传入自定义参数，并在编译过程注入这些参�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2018/03/26/ios-CoreBluetoothProgrammingGuide/">
+    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2014/09/20/ios-blocks/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Hansen Wu">
@@ -971,7 +1014,7 @@ gradle 命令行支持传入自定义参数，并在编译过程注入这些参�
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/03/26/ios-CoreBluetoothProgrammingGuide/" itemprop="url">Core Bluetooth Programming Guide 译文</a></h2>
+                <a class="post-title-link" href="/2014/09/20/ios-blocks/" itemprop="url">iOS block</a></h2>
         
 
         <div class="post-meta">
@@ -983,8 +1026,8 @@ gradle 命令行支持传入自定义参数，并在编译过程注入这些参�
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-03-26T19:09:15+08:00">
-                2018-03-26
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-09-20T20:18:23+08:00">
+                2014-09-20
               </time>
             
 
@@ -1002,9 +1045,9 @@ gradle 命令行支持传入自定义参数，并在编译过程注入这些参�
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/03/26/ios-CoreBluetoothProgrammingGuide/#comments" itemprop="discussionUrl">
+                <a href="/2014/09/20/ios-blocks/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/03/26/ios-CoreBluetoothProgrammingGuide/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2014/09/20/ios-blocks/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1034,13 +1077,12 @@ gradle 命令行支持传入自定义参数，并在编译过程注入这些参�
       
         
           
-          介绍关于 Core BluetoothCore Bluetooth 框架提供 iOS 应用和 Mac 应用与设备（配备了蓝牙低能耗无线技术的设备）通信的类。例如，应用可以发现、探测并与低能耗外围设备（比如心率监听器和数字恒温器）交互。从 macOS 10.9 和 iOS 6 开始，Mac 和 iOS 设备还可以当做蓝牙低能耗外设来使用，为其它设备提供数据，包括其他 Mac 和 iOS 设备。
-
-一览蓝牙低能耗无线技术基于蓝牙 4.0 规范，规范中除了别的之外，定义了与低能耗设备通信的一套协议。Core Bluetooth 框架是蓝牙低能耗协议栈的一个抽象，也就是说，它为开发者隐藏了许多规范中的
+          blocks 是 C 语言的扩充功能。blocks 是带有自动变量（局部变量）的匿名函数。
+截获自动变量12345678910111213141516int main()&#123;	int dmy = 256;	int val = 10;	const char *fmt = &quot;val = %d\n&quot;;	void (^blk)(void) = ^&#123;		printf(fmt,val);	&#125;;		val = 2;	fmt = &quot;These value were changed. val = %d\n&quot;;		blk();		return 0
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2018/03/26/ios-CoreBluetoothProgrammingGuide/#more" rel="contents">
+            <a class="btn" href="/2014/09/20/ios-blocks/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1091,7 +1133,7 @@ gradle 命令行支持传入自定义参数，并在编译过程注入这些参�
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2017/12/12/Terminology-confusion/">
+    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2014/07/27/C-typeof/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Hansen Wu">
@@ -1110,7 +1152,7 @@ gradle 命令行支持传入自定义参数，并在编译过程注入这些参�
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/12/12/Terminology-confusion/" itemprop="url">Difference between authentication, authorization,verification, validation</a></h2>
+                <a class="post-title-link" href="/2014/07/27/C-typeof/" itemprop="url">Typeof()</a></h2>
         
 
         <div class="post-meta">
@@ -1122,8 +1164,8 @@ gradle 命令行支持传入自定义参数，并在编译过程注入这些参�
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-12-12T21:41:34+08:00">
-                2017-12-12
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-07-27T20:56:50+08:00">
+                2014-07-27
               </time>
             
 
@@ -1141,9 +1183,9 @@ gradle 命令行支持传入自定义参数，并在编译过程注入这些参�
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/12/12/Terminology-confusion/#comments" itemprop="discussionUrl">
+                <a href="/2014/07/27/C-typeof/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2017/12/12/Terminology-confusion/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2014/07/27/C-typeof/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1173,14 +1215,18 @@ gradle 命令行支持传入自定义参数，并在编译过程注入这些参�
       
         
           
-          verification, validation, authentication, authorization 这几个术语很常用，也经常被误用，这里做一次对比总结。
-identity
+          最近看到项目中，有人这样写 __weak __typeof__(self) wself = self;。我查了一下资料，总结一下。
+typeof关键字是C语言中的一个新扩展,在linux内核中应用非常广泛。
+说明typeof()的参数可以是表达式或一种类型。返回的结果是一种类型。
 
-A security principal (you or a computer, typically) wants to access a system. Because the system doesn’t know you yet, you need to make a declaration of who you are. Your answer to the question “Who are you”
+表达式
+
+typeof(x[0](1));
+这里假设 x 是一个函数指针数组，这样就可以得到这个函数返回值的类型了。如果将 typeof 用于表达式，则该表达式不会执行。只会得到该表达式的类型。以下示例声明了 int 类型的 var 变量，因为表达式 foo() 是 int 类型的。由于表达式不会被执行，所以不会调
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2017/12/12/Terminology-confusion/#more" rel="contents">
+            <a class="btn" href="/2014/07/27/C-typeof/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1231,7 +1277,7 @@ A security principal (you or a computer, typically) wants to access a system. Be
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2017/11/27/ios-LocalAndRemoteNotificationProgrammingGuide/">
+    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2014/07/13/ios-main/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Hansen Wu">
@@ -1250,7 +1296,7 @@ A security principal (you or a computer, typically) wants to access a system. Be
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/11/27/ios-LocalAndRemoteNotificationProgrammingGuide/" itemprop="url">Local and Remote Notification Programming Guide 译文</a></h2>
+                <a class="post-title-link" href="/2014/07/13/ios-main/" itemprop="url">iOS 的 main.m 文件</a></h2>
         
 
         <div class="post-meta">
@@ -1262,8 +1308,8 @@ A security principal (you or a computer, typically) wants to access a system. Be
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-11-27T20:26:21+08:00">
-                2017-11-27
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-07-13T21:15:12+08:00">
+                2014-07-13
               </time>
             
 
@@ -1281,9 +1327,9 @@ A security principal (you or a computer, typically) wants to access a system. Be
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/11/27/ios-LocalAndRemoteNotificationProgrammingGuide/#comments" itemprop="discussionUrl">
+                <a href="/2014/07/13/ios-main/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2017/11/27/ios-LocalAndRemoteNotificationProgrammingGuide/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2014/07/13/ios-main/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1313,306 +1359,14 @@ A security principal (you or a computer, typically) wants to access a system. Be
       
         
           
-          原文地址：本地和远程通知编程指南
-应用中的通知本地和远程通知概览
-重要 这篇文档包含开发中有关 API 或技术的初步信息，这些信息可能会改变，并且根据这篇文档来实现的软件应当在最终的操作系统软件中进行测试。
-
-本地通知和远程通知是在应用有新数据可用时通知用户的两种方式，即使此时应用不在前台运行。例如，短信应用可能会让用户知道有新的短信来了，日历应用可能会通知用户即将到来的约会。本地通知和远程通知的区别很简单：
-
-对于本地通知，应用在本地配置通知的细节并把这些细节传给系统，然后由系统来处理通知的传递（当应用不在前台时）。iOS、tvOS、watchOS 都支持本地通知。
-对于远程通知，使用公司服
+          C语言的入口函数是 main()，Objective-C 也一样。
+在项目导航面板中选中 main.m ，可以看到
+12345int main(int argc, char * argv[]) &#123;    @autoreleasepool &#123;        return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));    &#125;&#125;
+UIApplicationMain 函数会创建一个 UIApplication 对象。每个 iOS 应用都有且只有一个 UIA
           ...
           <!--noindex-->
           <div class="post-button text-center">
-            <a class="btn" href="/2017/11/27/ios-LocalAndRemoteNotificationProgrammingGuide/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2017/10/14/android-FirstLineCodeNote/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Hansen Wu">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.JPG">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hansen Wu's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/10/14/android-FirstLineCodeNote/" itemprop="url">《第一行代码》阅读笔记</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-10-14T11:59:26+08:00">
-                2017-10-14
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2017/10/14/android-FirstLineCodeNote/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2017/10/14/android-FirstLineCodeNote/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          最近为了学习 Android，找从事 Android 开发的朋友推荐些书，最后他推荐了《第一行代码》（第 2 版）和《Android 开发艺术探索》两本书。本文是在阅读了《第一行代码》之后所做的笔记，主要记录 Android 平台上的一些比较有趣的特性以及它和 iOS 的不同之处。
-Android 全貌
-2008 年 9 月，Google 正式发布 Android 1.0 系统
-2014 年 Google I/O 大会上发布号称史上版本改动最大的 Android 5.0 系统，这版本使用 ART 运行环境替换 Dalvik 虚拟机，同时推出 Wear、Auto、TV 系统
-2016 年 Goo
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/10/14/android-FirstLineCodeNote/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-          <!--/noindex-->
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://redscarf.me/2017/06/23/ios-OC-interact-with-JS/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Hansen Wu">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.JPG">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hansen Wu's blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2017/06/23/ios-OC-interact-with-JS/" itemprop="url">OC 与 JS 通信的几种方式</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-23T22:57:25+08:00">
-                2017-06-23
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2017/06/23/ios-OC-interact-with-JS/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2017/06/23/ios-OC-interact-with-JS/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-          
-在代理方法中拦截协议
-使用 JavaScriptCore
-WKWebView 的 WKScriptMessagehandler
-使用 NSURLProtocol 拦截请求
-使用第三方库 WebViewJavascriptBridge
-使用 WebSocket
-
-这里只介绍第 6 种，其它的相关资料网上有很多。
-使用 WebSocket 的方式需要在应用内起一个 websocket server 服务（有很多第三方的 websocket server 库），html 页面通过 Websocket 连接到服务，接着就是发送消息了，剩下的就跟代理方法拦截协议类似。
-1234567891011121
-          ...
-          <!--noindex-->
-          <div class="post-button text-center">
-            <a class="btn" href="/2017/06/23/ios-OC-interact-with-JS/#more" rel="contents">
+            <a class="btn" href="/2014/07/13/ios-main/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -1654,7 +1408,7 @@ WKWebView 的 WKScriptMessagehandler
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
   </nav>
 
 
