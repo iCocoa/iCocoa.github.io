@@ -54,9 +54,7 @@ User Notifications UI 框架是 User Notifications 的配套，它可以让你�
 
 **图 1-1** 一个包含角标数字的应用图标
 
-<img style='width:80px;height:80px' src="https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/Art/badged_app_2x.png" />
-
-<!--![图 1-1](https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/Art/badged_app_2x.png)-->
+![badged_app_icon](https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625318448/iOS/badged_app_2x_n7ysc4.png)
 
 为了避免惹恼用户，常常明智而审慎地使用本地和远程通知。系统允许用户根据每个应用来启用和禁用弹框、声音以及角标的呈现。虽然通知依然会传递到应用，但是系统仅仅会根据当前的启用选项来通知用户。如果用户完全禁用通知，APNs 不会往用户的设备传递应用的通知并且本地通知的调度总会失败。
 

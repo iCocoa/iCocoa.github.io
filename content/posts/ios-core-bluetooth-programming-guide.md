@@ -10,7 +10,7 @@ categories: ["翻译"]
 ## 关于 Core Bluetooth
 Core Bluetooth 框架提供 iOS 应用和 Mac 应用与设备（配备了蓝牙低能耗无线技术的设备）通信的类。例如，应用可以发现、探测并与低能耗外围设备（比如心率监听器和数字恒温器）交互。从 macOS 10.9 和 iOS 6 开始，Mac 和 iOS 设备还可以当做蓝牙低能耗外设来使用，为其它设备提供数据，包括其他 Mac 和 iOS 设备。
 
-<img id='core_bluetooth_architecture' style='width:150px;height:200px' src="https://developer.apple.com/library/content/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/Art/CBTechnologyFramework_2x.png" />
+![core_bluetooth_architecture](https://developer.apple.com/library/content/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/Art/CBTechnologyFramework_2x.png)
 
 ## 一览
 
@@ -96,7 +96,7 @@ Core Bluetooth 框架使得 iOS 和 Mac 的应用可以和蓝牙低能耗设备�
 
 图 1-3 外围设备的服务和特性
 
-<img id='peripheral_service_characteristic' style='width:200px;height:350px' src="https://developer.apple.com/library/content/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/Art/CBPeripheralData_Example_2x.png" />
+![peripheral_service_characteristic](https://developer.apple.com/library/content/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/Art/CBPeripheralData_Example_2x.png)
 
 ### 中央设备探索并与外围设备数据进行交互
 

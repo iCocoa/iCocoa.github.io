@@ -9,7 +9,7 @@ categories: ["iOS"]
 
 由于 HTML5 跨平台的特点，很多技术团队考虑到代码复用，在部分模块中会采用 h5 来描述界面。甚至有些不需要太复杂交互的 app，全部界面采用 h5 来编写，也就是一个 web 工程。对于大部分现有的 web 工程，能打包成 app 就已经满足了业务诉求。DCloud 团队开发的 HBuilder（IDE）工具中提供了云打包的功能，用起来很方便，简单的说，就是把 web 工程上传到云打包服务器，最后打包生成 app，点击下载即可安装使用。
 
-<img src="https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297147/web/dcloud-pack-param_atnmdu.png"  style="width:420px; height:350px; align:left"/>
+![dcloud-pack-param](https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297147/web/dcloud-pack-param_atnmdu.png)
 
 虽然云打包服务很方便，但上传源码总感觉不太妥当，总有些秘密不想让别人看见，并且其他同事也有打包的需求，但不一定会使用 HBuilder。因此，搭建一个自己的打包服务很有必要。
 
@@ -30,7 +30,7 @@ categories: ["iOS"]
 
 其次，在服务器上部署一个 web 服务，提供打包交互界面方便客户端上传资源文件及下载安装包。我们的界面只提供了一个 `www` zip 包的上传入口，所有应用资源及打包相关的配置文件都在里面。www 目录结构如下：
 
-<img src="https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297146/web/paf-www-dir_aabjio.png"  style="width:300px; height:200px; align:left"/>
+![paf-www-dir](https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297146/web/paf-www-dir_aabjio.png)
 
 ### appConfig.json 文件内容
 
