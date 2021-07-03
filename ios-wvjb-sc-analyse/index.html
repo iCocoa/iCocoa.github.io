@@ -1,0 +1,265 @@
+<!doctype html><html lang=en><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="noodp"><meta http-equiv=x-ua-compatible content="IE=edge, chrome=1"><title>WebViewJavascriptBridge 源码剖析 - Haisheng Wu's Tech Blog</title><meta name=description content="This is Haisheng Wu's Tech Blog"><meta property="og:title" content="WebViewJavascriptBridge 源码剖析"><meta property="og:description" content="WebViewJavascriptBridge 是一个可以让 OC 与 JS 进行交互通信的第三方开源库。相比其他热门的第三方库，WebViewJavascriptBridge 代码量比较少，并且设计优雅巧妙，可以说是 “小而美”。
+WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事先注册 handler，内部维护一个消息队列。透明的 iframe HTML 元素和 webview 的 stringByEvaluatingJavaScriptFromString 是通信的关键。OC 端发消息给 JS 端比较直观，调起 stringByEvaluatingJavaScriptFromString 执行脚本传入消息即可。JS 端发消息给 OC 端，需要事先把消息存到队列中，然后借助 iframe 发起一个伪请求，伪请求会被 webview 的代理方法拦截下来，OC 端因此得知 JS 端消息队列中有消息，最后调起 stringByEvaluatingJavaScriptFromString 方法解析 JS 方法拿到队列中的消息并处理。交互流程见下图：
+整个库只有以下几个文件：
+1 2 3 4 5 6 7 8  WebViewJavascriptBridge.h WebViewJavascriptBridge.m WKWebViewJavascriptBridge.h WKWebViewJavascriptBridge.m WebViewJavascriptBridgeBase.h WebViewJavascriptBridgeBase.m WebViewJavascriptBridge_JS.h WebViewJavascriptBridge_JS.m   一般使用只需要关注 WebViewJavascriptBridge 类提供的接口，这个类的主要职责是用来做 Mac 和 iOS webview 的适配（包括 WKWebView，但是这部分代理出去给 WKWebViewJavaScriptBridge 类）并为客户端提供便利的使用接口。WebViewJavascriptBridgeBase 类负责有关数据加工、消息队列管理、消息派发及回调的处理工作。WebViewJavascriptBridge_JS 类包含 JS 端的实现代码，通过宏处理返回 JS 端实现代码的一个 OC 字符串，便于在适当时机将其注入到文档模型中完成 bridge 的初始化。"><meta property="og:type" content="article"><meta property="og:url" content="http://www.redscarf.me/ios-wvjb-sc-analyse/"><meta property="og:image" content="http://www.redscarf.me/logo.png"><meta property="article:section" content="posts"><meta property="article:published_time" content="2018-12-20T22:21:48+10:00"><meta property="article:modified_time" content="2018-12-20T22:21:48+10:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="http://www.redscarf.me/logo.png"><meta name=twitter:title content="WebViewJavascriptBridge 源码剖析"><meta name=twitter:description content="WebViewJavascriptBridge 是一个可以让 OC 与 JS 进行交互通信的第三方开源库。相比其他热门的第三方库，WebViewJavascriptBridge 代码量比较少，并且设计优雅巧妙，可以说是 “小而美”。
+WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事先注册 handler，内部维护一个消息队列。透明的 iframe HTML 元素和 webview 的 stringByEvaluatingJavaScriptFromString 是通信的关键。OC 端发消息给 JS 端比较直观，调起 stringByEvaluatingJavaScriptFromString 执行脚本传入消息即可。JS 端发消息给 OC 端，需要事先把消息存到队列中，然后借助 iframe 发起一个伪请求，伪请求会被 webview 的代理方法拦截下来，OC 端因此得知 JS 端消息队列中有消息，最后调起 stringByEvaluatingJavaScriptFromString 方法解析 JS 方法拿到队列中的消息并处理。交互流程见下图：
+整个库只有以下几个文件：
+1 2 3 4 5 6 7 8  WebViewJavascriptBridge.h WebViewJavascriptBridge.m WKWebViewJavascriptBridge.h WKWebViewJavascriptBridge.m WebViewJavascriptBridgeBase.h WebViewJavascriptBridgeBase.m WebViewJavascriptBridge_JS.h WebViewJavascriptBridge_JS.m   一般使用只需要关注 WebViewJavascriptBridge 类提供的接口，这个类的主要职责是用来做 Mac 和 iOS webview 的适配（包括 WKWebView，但是这部分代理出去给 WKWebViewJavaScriptBridge 类）并为客户端提供便利的使用接口。WebViewJavascriptBridgeBase 类负责有关数据加工、消息队列管理、消息派发及回调的处理工作。WebViewJavascriptBridge_JS 类包含 JS 端的实现代码，通过宏处理返回 JS 端实现代码的一个 OC 字符串，便于在适当时机将其注入到文档模型中完成 bridge 的初始化。"><meta name=application-name content="LoveIt"><meta name=apple-mobile-web-app-title content="LoveIt"><meta name=theme-color content="#ffffff"><meta name=msapplication-TileColor content="#da532c"><link rel="shortcut icon" type=image/x-icon href=/favicon.ico><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><link rel=manifest href=/site.webmanifest><link rel=canonical href=http://www.redscarf.me/ios-wvjb-sc-analyse/><link rel=prev href=http://www.redscarf.me/ios-remote-pack/><link rel=next href=http://www.redscarf.me/hugo_newbie/><link rel=stylesheet href=/lib/normalize/normalize.min.css><link rel=stylesheet href=/css/style.min.css><link rel=stylesheet href=/lib/fontawesome-free/all.min.css><link rel=stylesheet href=/lib/animate/animate.min.css><script type=application/ld+json>{"@context":"http://schema.org","@type":"BlogPosting","headline":"WebViewJavascriptBridge 源码剖析","inLanguage":"en","mainEntityOfPage":{"@type":"WebPage","@id":"http:\/\/www.redscarf.me\/ios-wvjb-sc-analyse\/"},"genre":"posts","keywords":"iOS, 源码剖析","wordcount":698,"url":"http:\/\/www.redscarf.me\/ios-wvjb-sc-analyse\/","datePublished":"2018-12-20T22:21:48+10:00","dateModified":"2018-12-20T22:21:48+10:00","publisher":{"@type":"Organization","name":""},"author":{"@type":"Person","name":"Haisheng Wu"},"description":""}</script></head><body header-desktop=fixed header-mobile=auto><script type=text/javascript>(window.localStorage&&localStorage.getItem('theme')?localStorage.getItem('theme')==='dark':'auto'==='auto'?window.matchMedia('(prefers-color-scheme: dark)').matches:'auto'==='dark')&&document.body.setAttribute('theme','dark')</script><div id=mask></div><div class=wrapper><header class=desktop id=header-desktop><div class=header-wrapper><div class=header-title><a href=/ title="Haisheng Wu's Tech Blog"></a></div><div class=menu><div class=menu-inner><a class=menu-item href=/>Home </a><a class=menu-item href=/posts/>Posts </a><a class=menu-item href=/tags/>Tags </a><a class=menu-item href=/categories/>Categories </a><a class=menu-item href=/about/>About Me </a><span class="menu-item delimiter"></span><span class="menu-item search" id=search-desktop><input type=text placeholder=搜索文章标题或内容... id=search-input-desktop>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-desktop title=搜索><i class="fas fa-search fa-fw"></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-desktop title=清空><i class="fas fa-times-circle fa-fw"></i></a>
+<span class="search-button search-loading" id=search-loading-desktop><i class="fas fa-spinner fa-fw fa-spin"></i></span>
+</span><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题><i class="fas fa-adjust fa-fw"></i></a></div></div></div></header><header class=mobile id=header-mobile><div class=header-container><div class=header-wrapper><div class=header-title><a href=/ title="Haisheng Wu's Tech Blog"></a></div><div class=menu-toggle id=menu-toggle-mobile><span></span><span></span><span></span></div></div><div class=menu id=menu-mobile><div class=search-wrapper><div class="search mobile" id=search-mobile><input type=text placeholder=搜索文章标题或内容... id=search-input-mobile>
+<a href=javascript:void(0); class="search-button search-toggle" id=search-toggle-mobile title=搜索><i class="fas fa-search fa-fw"></i></a>
+<a href=javascript:void(0); class="search-button search-clear" id=search-clear-mobile title=清空><i class="fas fa-times-circle fa-fw"></i></a>
+<span class="search-button search-loading" id=search-loading-mobile><i class="fas fa-spinner fa-fw fa-spin"></i></span></div><a href=javascript:void(0); class=search-cancel id=search-cancel-mobile>取消</a></div><a class=menu-item href=/ title>Home</a><a class=menu-item href=/posts/ title>Posts</a><a class=menu-item href=/tags/ title>Tags</a><a class=menu-item href=/categories/ title>Categories</a><a class=menu-item href=/about/ title>About Me</a><a href=javascript:void(0); class="menu-item theme-switch" title=切换主题>
+<i class="fas fa-adjust fa-fw"></i></a></div></div></header><div class="search-dropdown desktop"><div id=search-dropdown-desktop></div></div><div class="search-dropdown mobile"><div id=search-dropdown-mobile></div></div><main class=main><div class=container><div class=toc id=toc-auto><h2 class=toc-title>目录</h2><div class=toc-content id=toc-content-auto></div></div><article class="page single"><h1 class="single-title animated flipInX">WebViewJavascriptBridge 源码剖析</h1><div class=post-meta><div class=post-meta-line><span class=post-author><a href=/ title=Author rel=" author" class=author><i class="fas fa-user-circle fa-fw"></i>Haisheng Wu</a></span>&nbsp;<span class=post-category>收录于 <a href=/categories/ios/><i class="far fa-folder fa-fw"></i>iOS</a></span></div><div class=post-meta-line><i class="far fa-calendar-alt fa-fw"></i>&nbsp;<time datetime=2018-12-20>2018-12-20</time>&nbsp;<i class="fas fa-pencil-alt fa-fw"></i>&nbsp;约 698 字&nbsp;
+<i class="far fa-clock fa-fw"></i>&nbsp;预计阅读 4 分钟&nbsp;</div></div><div class="details toc" id=toc-static kept=true><div class="details-summary toc-title"><span>目录</span>
+<span><i class="details-icon fas fa-angle-right"></i></span></div><div class="details-content toc-content" id=toc-content-static><nav id=TableOfContents></nav></div></div><div class=content id=content><p><strong>WebViewJavascriptBridge</strong> 是一个可以让 OC 与 JS 进行交互通信的第三方开源库。相比其他热门的第三方库，WebViewJavascriptBridge 代码量比较少，并且设计优雅巧妙，可以说是 “小而美”。</p><p>WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事先注册 handler，内部维护一个消息队列。透明的 <code>iframe</code> HTML 元素和 webview 的 <code>stringByEvaluatingJavaScriptFromString</code> 是通信的关键。OC 端发消息给 JS 端比较直观，调起 <code>stringByEvaluatingJavaScriptFromString</code> 执行脚本传入消息即可。JS 端发消息给 OC 端，需要事先把消息存到队列中，然后借助 iframe 发起一个伪请求，伪请求会被 webview 的代理方法拦截下来，OC 端因此得知 JS 端消息队列中有消息，最后调起 <code>stringByEvaluatingJavaScriptFromString</code> 方法解析 JS 方法拿到队列中的消息并处理。交互流程见下图：</p><p><img class=lazyload src=/svg/loading.min.svg data-src=https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297150/web/webviewjsbridge_z8kdpc.jpg data-srcset="https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297150/web/webviewjsbridge_z8kdpc.jpg, https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297150/web/webviewjsbridge_z8kdpc.jpg 1.5x, https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297150/web/webviewjsbridge_z8kdpc.jpg 2x" data-sizes=auto alt=https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297150/web/webviewjsbridge_z8kdpc.jpg title=wbjb-sc-analyse-001></p><p>整个库只有以下几个文件：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>WebViewJavascriptBridge.h
+WebViewJavascriptBridge.m
+WKWebViewJavascriptBridge.h 
+WKWebViewJavascriptBridge.m
+WebViewJavascriptBridgeBase.h
+WebViewJavascriptBridgeBase.m
+WebViewJavascriptBridge_JS.h
+WebViewJavascriptBridge_JS.m
+</code></pre></td></tr></table></div></div><p>一般使用只需要关注 <code>WebViewJavascriptBridge</code> 类提供的接口，这个类的主要职责是用来做 Mac 和 iOS webview 的适配（包括 WKWebView，但是这部分代理出去给 WKWebViewJavaScriptBridge 类）并为客户端提供便利的使用接口。<code>WebViewJavascriptBridgeBase</code> 类负责有关数据加工、消息队列管理、消息派发及回调的处理工作。<code>WebViewJavascriptBridge_JS</code> 类包含 JS 端的实现代码，通过宏处理返回 JS 端实现代码的一个 OC 字符串，便于在适当时机将其注入到文档模型中完成 bridge 的初始化。</p><h1 id=webviewjavascriptbridge-类>WebViewJavascriptBridge 类</h1><p>下面这个方法用来注册 handler，以响应 JS 的调用。handler 会被缓存到 _base 的 map 中，以供后续调用。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- (void)registerHandler:(NSString*)handlerName handler:(WVJBHandler)handler;
+</code></pre></td></tr></table></div></div><p>下面这个方法用来调用 JS 对应的方法，responseCallback 会被缓存到 _base 的 map 中，以供后续调用。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- (void)callHandler:(NSString*)handlerName data:(id)data responseCallback:(WVJBResponseCallback)responseCallback;
+</code></pre></td></tr></table></div></div><p>对 iframe 所发出的伪请求的拦截在此代理方法中进行</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
+    if (webView != _webView) { return YES; }
+    
+    NSURL *url = [request URL];
+    __strong WVJB_WEBVIEW_DELEGATE_TYPE* strongDelegate = _webViewDelegate;
+    if ([_base isWebViewJavascriptBridgeURL:url]) {
+        if ([_base isBridgeLoadedURL:url]) {
+            [_base injectJavascriptFile];
+        } else if ([_base isQueueMessageURL:url]) {
+            NSString *messageQueueString = [self _evaluateJavascript:[_base webViewJavascriptFetchQueyCommand]];
+            [_base flushMessageQueue:messageQueueString];
+        } else {
+            [_base logUnkownMessage:url];
+        }
+        return NO;
+    } else if (strongDelegate &amp;&amp; [strongDelegate respondsToSelector:@selector(webView:shouldStartLoadWithRequest:navigationType:)]) {
+        return [strongDelegate webView:webView shouldStartLoadWithRequest:request navigationType:navigationType];
+    } else {
+        return YES;
+    }
+}
+</code></pre></td></tr></table></div></div><p><code>[_base isBridgeLoadedURL:url]</code> 结果为 true 时表示正在加载 bridge，此时可以注入 JS 端实现代码到文档模型中，判断依据为 <em><strong>bridge_loaded</strong></em> 主机名。由 iframe 发起的伪请求 <code>WVJBIframe.src = 'https://__bridge_loaded__';</code> 触发。</p><p><code>[_base isQueueMessageURL:url]</code> 结果为 true 时表示 JS 消息队列中有消息需要处理，判断依据为 <em><strong>wvjb_queue_message</strong></em> 主机名。由 iframe 发起的伪请求 <code>messagingIframe.src = 'https://__wvjb_queue_message__';</code> 触发。</p><p>从这里也可以看出，很多 api 的请求都转发给<code>WebViewJavascriptBridgeBase</code> 类型的实例变量 <code>_base</code>。</p><h1 id=webviewjavascriptbridgebase-类>WebViewJavascriptBridgeBase 类</h1><p>WebViewJavascriptBridgeBase 类中维护一个 handler map 和一个 callback map，用来响应 JS 的调用。内部有一些序列化以及反序列化的私有方法。</p><p>OC 端使用下面这个方法往 JS 端发消息。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- (void)_dispatchMessage:(WVJBMessage*)message {
+    NSString *messageJSON = [self _serializeMessage:message pretty:NO];
+    messageJSON = [messageJSON stringByReplacingOccurrencesOfString:@&#34;\\&#34; withString:@&#34;\\\\&#34;];
+    ...
+    NSString* javascriptCommand = [NSString stringWithFormat:@&#34;WebViewJavascriptBridge._handleMessageFromObjC(&#39;%@&#39;);&#34;, messageJSON];
+    if ([[NSThread currentThread] isMainThread]) {
+        [self _evaluateJavascript:javascriptCommand];
+    } else {
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            [self _evaluateJavascript:javascriptCommand];
+        });
+    }
+}
+</code></pre></td></tr></table></div></div><p>消息的结构为：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>{	
+	&#34;data&#34; : data,
+	&#34;callbackId&#34; : objc_cb_xxx, //xxx 为数字，JS 端的 callbackId 会拼接上时间
+	&#34;handlerName&#34; : handlerName,
+	&#34;responseId&#34; : objc_cb_xxx 
+}
+</code></pre></td></tr></table></div></div><p>在拦截中获知正在加载 bridge 后，下面这个方法把 JS 代码注入到文档模型中，初始化 bridge。在网页没加载之前，也就是 bridge 没建立之前，可能 OC 端会发送消息，这些消息需要缓存在 <code>startupMessageQueue</code> 中，在建立 bridge 之后，这个 queue 就没用了。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- (void)injectJavascriptFile {
+    NSString *js = WebViewJavascriptBridge_js();
+    [self _evaluateJavascript:js];
+    if (self.startupMessageQueue) {
+        NSArray* queue = self.startupMessageQueue;
+        self.startupMessageQueue = nil;
+        for (id queuedMessage in queue) {
+            [self _dispatchMessage:queuedMessage];
+        }
+    }
+}
+</code></pre></td></tr></table></div></div><p>在拦截中获知 JS 消息队列中有消息需要处理后，拉取消息会用到下面这个方法。方法中优先查看消息中是否含有 <code>responseId</code> 这个 key，若有，表明是来自 JS 端的消息响应，紧接着使用这个 id 取出 reponseCallback map 中的 block 并执行。反之，是来自 JS 正常的方法调用，则使用消息中的 <code>handlerName</code> key 取出 handler map 中的 block 并执行。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>- (void)flushMessageQueue:(NSString *)messageQueueString {
+    if (messageQueueString == nil || messageQueueString.length == 0) {
+        NSLog(@&#34;WebViewJavascriptBridge: WARNING: ObjC got nil while fetching the message queue JSON from webview. This can happen if the WebViewJavascriptBridge JS is not currently present in the webview, e.g if the webview just loaded a new page.&#34;);
+        return;
+    }
+
+    id messages = [self _deserializeMessageJSON:messageQueueString];
+    for (WVJBMessage* message in messages) {
+        if (![message isKindOfClass:[WVJBMessage class]]) {
+            NSLog(@&#34;WebViewJavascriptBridge: WARNING: Invalid %@ received: %@&#34;, [message class], message);
+            continue;
+        }
+        [self _log:@&#34;RCVD&#34; json:message];
+        
+        NSString* responseId = message[@&#34;responseId&#34;];
+        if (responseId) {
+            WVJBResponseCallback responseCallback = _responseCallbacks[responseId];
+            responseCallback(message[@&#34;responseData&#34;]);
+            [self.responseCallbacks removeObjectForKey:responseId];
+        } else {
+            WVJBResponseCallback responseCallback = NULL;
+            NSString* callbackId = message[@&#34;callbackId&#34;];
+            if (callbackId) {
+                responseCallback = ^(id responseData) {
+                    if (responseData == nil) {
+                        responseData = [NSNull null];
+                    }
+                    
+                    WVJBMessage* msg = @{ @&#34;responseId&#34;:callbackId, @&#34;responseData&#34;:responseData };
+                    [self _queueMessage:msg];
+                };
+            } else {
+                responseCallback = ^(id ignoreResponseData) {
+                    // Do nothing
+                };
+            }
+            
+            WVJBHandler handler = self.messageHandlers[message[@&#34;handlerName&#34;]];
+            
+            if (!handler) {
+                NSLog(@&#34;WVJBNoHandlerException, No handler for message from JS: %@&#34;, message);
+                continue;
+            }
+            
+            handler(message[@&#34;data&#34;], responseCallback);
+        }
+    }
+}
+</code></pre></td></tr></table></div></div><h1 id=webviewjavascriptbridge_js-文件>WebViewJavascriptBridge_JS 文件</h1><p>这个文件包含 JS 端的实现代码，实现代码被赋值给一个 OC 的字符串，以便运行时注入。JS 端实现逻辑基本与 OC 端对应，唯一值得注意的是发送消息通过 iframe 间接发送。</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre class=chroma><code class=language-fallback data-lang=fallback>function _doSend(message, responseCallback) {
+	if (responseCallback) {
+		var callbackId = &#39;cb_&#39;+(uniqueId++)+&#39;_&#39;+new Date().getTime();
+		responseCallbacks[callbackId] = responseCallback;
+		message[&#39;callbackId&#39;] = callbackId;
+	}
+	sendMessageQueue.push(message);
+	messagingIframe.src = CUSTOM_PROTOCOL_SCHEME + &#39;://&#39; + QUEUE_HAS_MESSAGE;
+}
+
+messagingIframe = document.createElement(&#39;iframe&#39;);
+messagingIframe.style.display = &#39;none&#39;;
+document.documentElement.appendChild(messagingIframe);
+
+</code></pre></td></tr></table></div></div><blockquote><p>又一年过去了。</p></blockquote></div><div class=post-footer id=post-footer><div class=post-info><div class=post-info-line><div class=post-info-mod><span>更新于 2018-12-20</span></div><div class=post-info-license></div></div><div class=post-info-line><div class=post-info-md><span><a class=link-to-markdown href=/ios-wvjb-sc-analyse/index.md target=_blank rel="noopener noreferrer">阅读原始文档</a></span></div><div class=post-info-share><span><a href=javascript:void(0); title="分享到 Twitter" data-sharer=twitter data-url=http://www.redscarf.me/ios-wvjb-sc-analyse/ data-title="WebViewJavascriptBridge 源码剖析" data-hashtags=iOS,源码剖析><i class="fab fa-twitter fa-fw"></i></a><a href=javascript:void(0); title="分享到 Facebook" data-sharer=facebook data-url=http://www.redscarf.me/ios-wvjb-sc-analyse/ data-hashtag=iOS><i class="fab fa-facebook-square fa-fw"></i></a><a href=javascript:void(0); title="分享到 WhatsApp" data-sharer=whatsapp data-url=http://www.redscarf.me/ios-wvjb-sc-analyse/ data-title="WebViewJavascriptBridge 源码剖析" data-web><i class="fab fa-whatsapp fa-fw"></i></a><a href=javascript:void(0); title="分享到 Line" data-sharer=line data-url=http://www.redscarf.me/ios-wvjb-sc-analyse/ data-title="WebViewJavascriptBridge 源码剖析"><i data-svg-src=/lib/simple-icons/icons/line.min.svg></i></a><a href=javascript:void(0); title="分享到 微博" data-sharer=weibo data-url=http://www.redscarf.me/ios-wvjb-sc-analyse/ data-title="WebViewJavascriptBridge 源码剖析"><i class="fab fa-weibo fa-fw"></i></a><a href=javascript:void(0); title="分享到 Myspace" data-sharer=myspace data-url=http://www.redscarf.me/ios-wvjb-sc-analyse/ data-title="WebViewJavascriptBridge 源码剖析" data-description><i data-svg-src=/lib/simple-icons/icons/myspace.min.svg></i></a><a href=javascript:void(0); title="分享到 Blogger" data-sharer=blogger data-url=http://www.redscarf.me/ios-wvjb-sc-analyse/ data-title="WebViewJavascriptBridge 源码剖析" data-description><i class="fab fa-blogger fa-fw"></i></a><a href=javascript:void(0); title="分享到 Evernote" data-sharer=evernote data-url=http://www.redscarf.me/ios-wvjb-sc-analyse/ data-title="WebViewJavascriptBridge 源码剖析"><i class="fab fa-evernote fa-fw"></i></a></span></div></div></div><div class=post-info-more><section class=post-tags><i class="fas fa-tags fa-fw"></i>&nbsp;<a href=/tags/ios/>iOS</a>,&nbsp;<a href=/tags/%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/>源码剖析</a></section><section><span><a href=javascript:void(0); onclick=window.history.back()>返回</a></span>&nbsp;|&nbsp;<span><a href=/>主页</a></span></section></div><div class=post-nav><a href=/ios-remote-pack/ class=prev rel=prev title="iOS 远程打包脚本制作"><i class="fas fa-angle-left fa-fw"></i>iOS 远程打包脚本制作</a>
+<a href=/hugo_newbie/ class=next rel=next title=博客搬新家了！！！>博客搬新家了！！！<i class="fas fa-angle-right fa-fw"></i></a></div></div><div id=comments><div id=disqus_thread class=comment></div><noscript>Please enable JavaScript to view the comments powered by <a href=https://disqus.com/?ref_noscript>Disqus</a>.</noscript></div></article></div></main><footer class=footer><div class=footer-container><div class=footer-line>由 <a href=https://gohugo.io/ target=_blank rel="noopener noreferrer" title="Hugo 0.84.4">Hugo</a> 强力驱动 | 主题 - <a href=https://github.com/sunt-programator/CodeIT target=_blank rel="noopener noreferrer" title="CodeIT 0.2.10"><i class="fas fa-laptop-code fa-fw"></i> CodeIT</a></div><div class=footer-line><i class="far fa-copyright fa-fw"></i><span itemprop=copyrightYear>2019 - 2021</span><span class=author itemprop=copyrightHolder>&nbsp;<a href=/ target=_blank rel="noopener noreferrer">Haisheng Wu</a></span>&nbsp;|&nbsp;<span class=license><a rel="license external nofollow noopener noreffer" href=https://creativecommons.org/licenses/by-nc/4.0/ target=_blank>CC BY-NC 4.0</a></span></div></div></footer></div><div id=fixed-buttons><a href=# id=back-to-top class=fixed-button title=回到顶部><i class="fas fa-arrow-up fa-fw"></i>
+</a><a href=# id=view-comments class=fixed-button title=查看评论><i class="fas fa-comment fa-fw"></i></a></div><link rel=stylesheet href=/lib/katex/katex.min.css><link rel=stylesheet href=/lib/katex/copy-tex.min.css><link rel=stylesheet href=/lib/cookieconsent/cookieconsent.min.css><script type=text/javascript src=https://redscarf.disqus.com/embed.js defer></script><script type=text/javascript src=/lib/smooth-scroll/smooth-scroll.min.js></script><script type=text/javascript src=/lib/autocomplete/autocomplete.min.js></script><script type=text/javascript src=/lib/lunr/lunr.min.js></script><script type=text/javascript src=/lib/lunr/lunr.stemmer.support.min.js></script><script type=text/javascript src=/lib/lunr/lunr.zh.min.js></script><script type=text/javascript src=/lib/lazysizes/lazysizes.min.js></script><script type=text/javascript src=/lib/clipboard/clipboard.min.js></script><script type=text/javascript src=/lib/sharer/sharer.min.js></script><script type=text/javascript src=/lib/katex/katex.min.js></script><script type=text/javascript src=/lib/katex/auto-render.min.js></script><script type=text/javascript src=/lib/katex/copy-tex.min.js></script><script type=text/javascript src=/lib/katex/mhchem.min.js></script><script type=text/javascript src=/lib/cookieconsent/cookieconsent.min.js></script><script type=text/javascript>window.config={code:{copyTitle:"复制到剪贴板",maxShownLines:1e3},comment:{},cookieconsent:{content:{dismiss:"同意",link:"了解更多",message:"本网站使用 Cookies 来改善您的浏览体验."},enable:!0,palette:{button:{background:"#f0f0f0"},popup:{background:"#1aa3ff"}},theme:"edgeless"},math:{delimiters:[{display:!0,left:"$$",right:"$$"},{display:!0,left:"\\[",right:"\\]"},{display:!1,left:"$",right:"$"},{display:!1,left:"\\(",right:"\\)"}],strict:!1},search:{highlightTag:"em",lunrIndexURL:"/index.json",lunrLanguageCode:"zh",lunrSegmentitURL:"/lib/lunr/lunr.segmentit.js",maxResultLength:10,noResultsFound:"没有找到结果",snippetLength:30,type:"lunr"}}</script><script type=text/javascript src=/js/theme.min.js></script></body></html>
