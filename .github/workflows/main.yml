@@ -34,4 +34,4 @@ jobs:
           keep_files: true
           user_name: iCocoa
           user_email: whs543@sina.com
-          cname: www.redscarf.me
+          cname: redscarf.me
