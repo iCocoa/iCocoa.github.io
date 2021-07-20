@@ -1,0 +1,10 @@
+<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0"><channel><title>nginx - 标签 - Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/tags/nginx/</link><description>nginx - 标签 - Haisheng Wu's Tech Blog</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>whs543@sina.com (Haisheng Wu)</managingEditor><webMaster>whs543@sina.com (Haisheng Wu)</webMaster><lastBuildDate>Tue, 08 Nov 2016 20:09:40 +1000</lastBuildDate><atom:link href="http://www.redscarf.me/tags/nginx/" rel="self" type="application/rss+xml"/><item><title>HTTPS 单向/双向认证</title><link>http://www.redscarf.me/https-uni-bidirectional-authentication/</link><pubDate>Tue, 08 Nov 2016 20:09:40 +1000</pubDate><author>whs543@sina.com</author><dc:creator>Haisheng Wu</dc:creator><guid>http://www.redscarf.me/https-uni-bidirectional-authentication/</guid><description>HTTPS HyperText Transfer Protocol，超文本传输协议，是互联网上使用最广泛的一种协议。HTTP协议传输的数据都是未加密的，也就是明文的，不适合用来传输隐私信息。默认 80 端口。
+Hyper Text Transfer Protocol over Secure Socket Layer，安全的超文本传输协议，网景公式设计了 SSL(Secure Sockets Layer) 协议用于对 Http 协议传输的数据进行加密，保证会话过程中的安全性。默认 443 端口。
+SSL 包含对称加密和非对称加密，在建立传输链路时，SSL 首先使用非对称加密的方式对对称加密密钥进行加密，建立链路后，使用对称加密的方式对传输内容进行加密。非对称加密有更高的安全性，在这个基础上使用对称加密可以获得更快的速度，提高传输效率。
+单向认证 客户端校验服务端证书
+client hello 客户端发起一条到服务端的连接，包含客户端支持的 TLS 版本、支持的加密套件(即加密算法)以及客户端随机数。
+server hello 服务端回应，包含服务端 SSL 证书、选择的加密套件以及服务端随机数。
+authentication 客户端向颁发证书的 CA 验证服务端的 SSL 证书，以确认服务端是它声称的那个身份，从而保证客户端与域名真正的所有者通信。
+send premaster key 客户端发送另一个随机数 “premaster key”，并对它使用服务端的公钥（从服务端 SSL 证书中获取得到）进行加密。
+decrypt premaster key 服务端解密 premaster key
+create session key 客户端和服务端各自使用客户端随机数、服务端随机数以及 premaster key 来计算 “session key”，即对称加密密钥，两边计算得出同样的结果并各自保留。</description></item></channel></rss>
