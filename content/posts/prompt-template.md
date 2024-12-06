@@ -1,6 +1,6 @@
 ---
 title: "Prompt 框架模版"
-date: 2023-7-09T21:30:32+10:00
+date: 2023-07-09T21:30:32+10:00
 tags: ["Prompt","ChatGPT"]
 categories: ["AI"]
 ---
