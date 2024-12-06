@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ARC on Haisheng Wu&#39;s Tech Blog</title>
+    <link>http://localhost:1313/tags/arc/</link>
+    <description>Recent content in ARC on Haisheng Wu&#39;s Tech Blog</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 22 Sep 2014 21:22:25 +1000</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/arc/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>ARC</title>
+      <link>http://localhost:1313/ios-arc/</link>
+      <pubDate>Mon, 22 Sep 2014 21:22:25 +1000</pubDate>
+      <guid>http://localhost:1313/ios-arc/</guid>
+      <description>&lt;h2 id=&#34;什么是自动引用计数&#34;&gt;什么是自动引用计数&lt;/h2&gt;&#xA;&lt;p&gt;自动引用计数（ARC，Automatic Reference Counting）是指内存管理中对引用采取自动计数的技术。要使用 ARC，需要满足以下条件：&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;使用 Xcode4.2 或以上版本&lt;/li&gt;&#xA;&lt;li&gt;使用 LLVM 编译器 3.0 或以上版本&lt;/li&gt;&#xA;&lt;li&gt;编译器选项中设置 ARC 有效&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;生活例子：办公室开关灯&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;最早进入办公室的人开灯。 count = 1&lt;/li&gt;&#xA;&lt;li&gt;之后进入办公室的人，需要照明。 count = 2&lt;/li&gt;&#xA;&lt;li&gt;下班离开办公室的人，不需要照明。 count = 1&lt;/li&gt;&#xA;&lt;li&gt;最后离开办公室的人关灯。（此时已无人需要照明） count = 0&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h2 id=&#34;内存管理&#34;&gt;内存管理&lt;/h2&gt;&#xA;&lt;p&gt;思考方式：&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;自己生成的对象，自己持有&lt;/li&gt;&#xA;&lt;li&gt;非自己生成的对象，自己也能持有&lt;/li&gt;&#xA;&lt;li&gt;不再需要自己持有的对象时释放&lt;/li&gt;&#xA;&lt;li&gt;非自己持有的对象无法释放&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;表 1- 2 对象操作与 Objective-C 方法的对应&lt;/p&gt;&#xA;&lt;table&gt;&#xA;  &lt;thead&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;th&gt;对象操作&lt;/th&gt;&#xA;          &lt;th style=&#34;text-align: center&#34;&gt;Objective-C方法&lt;/th&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/thead&gt;&#xA;  &lt;tbody&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;生成并持有对象&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: center&#34;&gt;alloc/new/copy/mutableCopy方法&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;持有对象&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: center&#34;&gt;retain方法&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;释放对象&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: center&#34;&gt;release方法&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;废弃对象&lt;/td&gt;&#xA;          &lt;td style=&#34;text-align: center&#34;&gt;dealloc方法&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/tbody&gt;&#xA;&lt;/table&gt;&#xA;&lt;p&gt;&lt;strong&gt;区域(zone)&lt;/strong&gt;&lt;/p&gt;&#xA;&lt;p&gt;&lt;code&gt;NSDefaultMallocZone&lt;/code&gt;、&lt;code&gt;NSZoneMalloc&lt;/code&gt; 等名称中包含的&lt;code&gt;NSZone&lt;/code&gt;是什么呢？它是为防止内存碎片化而引入的结构。对内存分配的区域本身进行多重化管理，根据使用对象的目的、对象的大小分配内存，从而提高了内存管理的效率。但是，如同苹果官方文档 Programming With ARC Release Notes 中所说，现在的运行时系统只是简单地忽略了区域的概念。运行时系统中的内存管理本身已极具效率，使用区域来管理内存反而会引起内存使用效率低下以及源代码复杂化问题。&lt;/p&gt;&#xA;&lt;p&gt;&lt;strong&gt;修饰符&lt;/strong&gt;&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;__strong 修饰符&lt;/li&gt;&#xA;&lt;li&gt;__weak 修饰符&lt;/li&gt;&#xA;&lt;li&gt;__unsafe_unretained 修饰符&lt;/li&gt;&#xA;&lt;li&gt;__autoreleasing 修饰符&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;__unsafe_unretained 修饰符正如其名 unsafe 所示，是不安全的所有权修饰符。尽管 ARC 式的内存管理是编译器的工作，但附有 __unsafe_unretained 修饰符的变量不属于编译器的内存管理对象。同附有 __weak 修饰符的变量一样，因为自己生成并持有的对象不能继续为自己所有，所以生成的对象会立即被释放。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

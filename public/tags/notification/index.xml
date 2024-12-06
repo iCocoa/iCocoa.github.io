@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Notification on Haisheng Wu&#39;s Tech Blog</title>
+    <link>http://localhost:1313/tags/notification/</link>
+    <description>Recent content in Notification on Haisheng Wu&#39;s Tech Blog</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Mon, 27 Nov 2017 20:26:21 +1000</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/notification/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Local and Remote Notification Programming Guide 译文</title>
+      <link>http://localhost:1313/ios-local-and-remote-notification-programming-guide/</link>
+      <pubDate>Mon, 27 Nov 2017 20:26:21 +1000</pubDate>
+      <guid>http://localhost:1313/ios-local-and-remote-notification-programming-guide/</guid>
+      <description>&lt;p&gt;原文地址：&lt;a href=&#34;https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/&#34;&gt;本地和远程通知编程指南&lt;/a&gt;&lt;/p&gt;&#xA;&lt;h1 id=&#34;应用中的通知&#34;&gt;应用中的通知&lt;/h1&gt;&#xA;&lt;h2 id=&#34;本地和远程通知概览&#34;&gt;本地和远程通知概览&lt;/h2&gt;&#xA;&lt;blockquote&gt;&#xA;&lt;p&gt;重要 &lt;/br&gt;&#xA;这篇文档包含开发中有关 API 或技术的初步信息，这些信息可能会改变，并且根据这篇文档来实现的软件应当在最终的操作系统软件中进行测试。&lt;/p&gt;&#xA;&lt;/blockquote&gt;&#xA;&lt;p&gt;本地通知和远程通知是在应用有新数据可用时通知用户的两种方式，即使此时应用不在前台运行。例如，短信应用可能会让用户知道有新的短信来了，日历应用可能会通知用户即将到来的约会。本地通知和远程通知的区别很简单：&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;对于本地通知，应用在本地配置通知的细节并把这些细节传给系统，然后由系统来处理通知的传递（当应用不在前台时）。iOS、tvOS、watchOS 都支持本地通知。&lt;/li&gt;&#xA;&lt;li&gt;对于远程通知，使用公司服务器中的一个通过&lt;code&gt;苹果推送通知服务&lt;/code&gt;把数据推送到用户的设备。iOS、tvOS、watchOS、macOS 都支持远程通知。&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;本地通知和远程通知都需要添加代码来支持应用中的通知的调度和处理。对于远程通知，必须提供一个服务器环境，该环境能够接收来自用户设备的数据和发送通知相关的数据到 &lt;code&gt;苹果推送消息服务&lt;/code&gt; (简称 APNs，由苹果提供的用来处理远程通知传递的服务)。&lt;/p&gt;&#xA;&lt;h3 id=&#34;user-notifications-和-user-notifications-ui-框架&#34;&gt;User Notifications 和 User Notifications UI 框架&lt;/h3&gt;&#xA;&lt;p&gt;从 iOS 10、watchOS 3、tvOS 10 开始，User Notifications 框架提供一致的方式来和处理本地通知。除了管理本地通知，该框架也支持远程通知的处理，然而远程通知的配置仍然需要一些平台特有的 API。因为这是一个独立的框架，所以可以在应用中或者扩展中使用，比如 WatchKit 扩展。&lt;/p&gt;&#xA;&lt;blockquote&gt;&#xA;&lt;p&gt;注意&lt;/br&gt;&#xA;macOS 上远程通知的配置和处理需要使用平台特有的方法（在 AppKit 框架中找）&lt;/p&gt;&#xA;&lt;/blockquote&gt;&#xA;&lt;p&gt;User Notifications 框架也支持创建 &lt;em&gt;通知服务应用扩展&lt;/em&gt; (notification service app extension)，它可以让你在远程通知传递之前修改通知的内容。如果在应用中包含通知服务应用扩展，系统会把收到的通知在传递给用户之前先传递给扩展。可以使用这类扩展来给应用的通知实现端到端的加密、在通知传递前修改其内容，又或者下载与通知相关的额外的图片或媒体文件。&lt;/p&gt;&#xA;&lt;p&gt;User Notifications UI 框架是 User Notifications 的配套，它可以让你自定义系统的通知界面的外观。使用User Notifications UI 框架来定义 &lt;em&gt;通知内容应用扩展&lt;/em&gt;(notification content app extension)，它的任务就是提供一个包含自定义内容的视图控制器来显示在通知界面中。系统会显示自定义视图控制器而不是默认的系统界面。可以使用这种扩展在通知界面中加入多媒体或动态内容。&lt;/p&gt;&#xA;&lt;p&gt;更多有关 User Notifications 框架的类的信息，请看 &lt;a href=&#34;https://developer.apple.com/documentation/usernotifications&#34;&gt;User Notifications Framework Reference&lt;/a&gt;。关于创建通知内容应用扩展的类的信息，请看 &lt;a href=&#34;https://developer.apple.com/documentation/usernotificationsui&#34;&gt;User Notifications UI Framework Reference&lt;/a&gt;。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
