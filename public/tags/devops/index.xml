@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Devops on Haisheng Wu's Tech Blog</title><link>https://redscarf.me/tags/devops/</link><description>Recent content in Devops on Haisheng Wu's Tech Blog</description><generator>Hugo</generator><language>en</language><lastBuildDate>Tue, 07 Jul 2020 22:15:32 +1000</lastBuildDate><atom:link href="https://redscarf.me/tags/devops/index.xml" rel="self" type="application/rss+xml"/><item><title>Docker 使用</title><link>https://redscarf.me/docker-base-use/</link><pubDate>Tue, 07 Jul 2020 22:15:32 +1000</pubDate><guid>https://redscarf.me/docker-base-use/</guid><description>&lt;p>通过 Docker 命令行工具与 Docker Daemon 进程通讯使用。&lt;/p>
+&lt;h2 id="使用步骤">使用步骤&lt;/h2>
+&lt;ol>
+&lt;li>&lt;strong>安装 Docker 到宿主机（物理机）&lt;/strong>&lt;/li>
+&lt;li>&lt;strong>到仓库拉取镜像&lt;/strong>&lt;br>
+&lt;a href="https://hub.docker.com">https://hub.docker.com&lt;/a>&lt;/li>
+&lt;li>&lt;strong>运行镜像产生容器（实例，一个镜像可以运行多个）&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;h2 id="镜像操作">镜像操作&lt;/h2>
+&lt;h3 id="搜索镜像">搜索镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker search imageName
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="拉取镜像">拉取镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker pull imageName:tag
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
+&lt;li>&lt;code>tag&lt;/code> 版本号，如不指定默认是 &lt;code>latest&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h3 id="查看本地镜像">查看本地镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker images
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="删除镜像">删除镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker rmi imageID
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker rmi &lt;span style="color:#f92672">[&lt;/span>repositoryname&lt;span style="color:#f92672">]&lt;/span>:&lt;span style="color:#f92672">[&lt;/span>tag&lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="删除所有未加标签的镜像untagged">删除所有未加标签的镜像(untagged)&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker rmi &lt;span style="color:#66d9ef">$(&lt;/span>docker images | grep &lt;span style="color:#e6db74">&amp;#34;^&amp;lt;none&amp;gt;&amp;#34;&lt;/span> | awk &lt;span style="color:#e6db74">&amp;#34;{print &lt;/span>$3&lt;span style="color:#e6db74">}&amp;#34;&lt;/span>&lt;span style="color:#66d9ef">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="重命名镜像">重命名镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker tag imageId imageName:tag
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="通过本地-dockerfile-文件编译镜像文件">通过本地 Dockerfile 文件编译镜像文件&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker build -t mop:latest - &amp;lt; mopDockerfile
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="容器操作">容器操作&lt;/h2>
+&lt;h3 id="进入容器">进入容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>sudo docker exec -it ubuntu bash
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker exec -it ardupilot bash
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="查看容器">查看容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker ps -a
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
+&lt;li>&lt;code>-a&lt;/code>：所有容器，包括停止的&lt;/li>
+&lt;li>&lt;code>-q&lt;/code>：查看停止的容器，不加选项默认查看运行中的容器&lt;/li>
+&lt;/ul>
+&lt;h3 id="保存容器">保存容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>sudo docker save ubuntu &amp;gt; ubuntu_save.tar
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="合并多个容器为一个文件">合并多个容器为一个文件&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>sudo docker save -o images.tar postgres:9.0 mongo:3.4
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="导出容器或镜像">导出容器或镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>sudo docker export ubuntu &amp;gt; ubuntu_export.tar
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="加载容器">加载容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>sudo docker load &amp;lt; ubuntu_save.tar
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="导入容器">导入容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>cat ubuntu_export.tar | sudo docker import - ubuntu:18.04
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="启动或停止容器">启动或停止容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker start/stop container-name/container-id
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="容器日志">容器日志&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker logs container-name/container-id
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker logs -f -t --since&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;2020-10-20&amp;#34;&lt;/span> --tail&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">10&lt;/span> container-name/container-id
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker logs &lt;span style="color:#f92672">[&lt;/span>OPTIONS&lt;span style="color:#f92672">]&lt;/span> CONTAINER
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Options:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> --details 显示更多的信息
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> -f, --follow 实时输出日志，最后一行为当前时间戳的日志
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> --since string 输出日志开始日期，即只输出指定日期之后的日志。
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> --tail string 显示最后多少行日志，默认是all
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> （如： -tail&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">10&lt;/span> : 查看最后的 &lt;span style="color:#ae81ff">10&lt;/span> 行日志。） 
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> -t, --timestamps 显示时间戳
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="镜像重命名">镜像重命名&lt;/h3>
+&lt;ul>
+&lt;li>&lt;code>docker import&lt;/code> 可以&lt;/li>
+&lt;li>&lt;code>docker load&lt;/code> 不可以&lt;/li>
+&lt;/ul>
+&lt;h3 id="将多个镜像打包到一个文件中">将多个镜像打包到一个文件中&lt;/h3>
+&lt;ul>
+&lt;li>&lt;code>docker export&lt;/code> 不支持&lt;/li>
+&lt;li>&lt;code>docker save&lt;/code> 支持&lt;/li>
+&lt;/ul>
+&lt;h3 id="删除容器">删除容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker rm containerid
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="删除所有已停止运行的容器stopped">删除所有已停止运行的容器(stopped)&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker rm &lt;span style="color:#66d9ef">$(&lt;/span>docker ps -a -q&lt;span style="color:#66d9ef">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="查看容器信息">查看容器信息&lt;/h3>
+&lt;h4 id="宿主机上">宿主机上&lt;/h4>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker inspect containerId
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="容器内部">容器内部&lt;/h4>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>ps -fe
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="运行">运行&lt;/h2>
+&lt;h3 id="运行镜像">运行镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker run --name container-name -d imageName
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker run -itd --name myubuntu ubuntu:latest /bin/bash
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;blockquote>
+&lt;p>注意查看官方文档推荐的启动实例，指定一些初始化的配置参数，否则可能初始化失败直接退出。例如 MySQL 官方示例，挂载本地配置文件到 Docker 容器内部。&lt;/p></description></item></channel></rss>

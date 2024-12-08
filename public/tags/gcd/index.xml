@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>GCD on Haisheng Wu's Tech Blog</title><link>https://redscarf.me/tags/gcd/</link><description>Recent content in GCD on Haisheng Wu's Tech Blog</description><generator>Hugo</generator><language>en</language><lastBuildDate>Mon, 05 Jan 2015 20:13:18 +1000</lastBuildDate><atom:link href="https://redscarf.me/tags/gcd/index.xml" rel="self" type="application/rss+xml"/><item><title>Grand Central Dispatch</title><link>https://redscarf.me/ios-gcd/</link><pubDate>Mon, 05 Jan 2015 20:13:18 +1000</pubDate><guid>https://redscarf.me/ios-gcd/</guid><description>&lt;p>&lt;strong>GCD&lt;/strong>（Grand Central Dispatch）是异步执行任务的技术之一。&lt;/p>
+&lt;p>一般将应用程序中记述的线程管理用的代码在系统级中实现。开发者只需要定义想执行的任务并追加到适当的 Dispatch Queue 中，GCD 就能生成必要的线程并计划执行任务。由于线程管理是作为系统的一部分来实现的，因此可统一管理，也可执行任务，这样就比以前的线程更有效率。&lt;/p>
+&lt;pre tabindex="0">&lt;code>dispatch_queue_t queue = dispatch_queue_create(&amp;#34;myQueue&amp;#34;, DISPATCH_QUEUE_CONCURRENT);
+dispatch_async(queue, ^{
+ /**
+ * 长时间处理
+ * 例如：AR用图像识别、数据库访问
+ */
+ 
+ /**
+ * 长时间处理结束，主线程使用该处理结果
+ */
+ 
+ dispatch_async(dispatch_get_main_queue(), ^{
+ /**
+ * 只在主线程可以执行的处理
+ * 例如用户界面刷新
+ */
+ });
+});
+&lt;/code>&lt;/pre>&lt;p>在导入 GCD 之前，Cocoa 框架提供了 NSObject 类的&lt;code>performSelectorInBackground:withObject&lt;/code>实例方法和&lt;code>performSelectorOnMainThread&lt;/code>实例方法等简单的多线程编程技术。&lt;/p>
+&lt;p>&lt;strong>线程&lt;/strong>&lt;/p>
+&lt;pre>&lt;code>线程是程序中一个单一的顺序控制流程。进程内一个相对独立的、可调度的执行单元，是系统独立调度和分派 CPU 的基本单位。在单个程序中同时运行多个线程完成不同的工作，称为多线程。
+“一个 CPU 执行的 CPU 命令列为一条无分叉路径”即为“线程”。
+现在一个物理的 CPU 芯片实际上有64个（64核）CPU，尽管如此，“一个 CPU 执行的 CPU 命令列为一条无分叉路径”仍然不变。
+	
+OS X 和 iOS 的核心 XNU 内核在发生操作系统事件时（如每隔一定时间，唤起系统调用等情况）会切换执行路径。执行中路径的状态，例如CPU的寄存器等信息保存到各自路径专用的内存块中，从切换目标路径专用的内存块中，复原 CPU 寄存器等信息，继续执行切换路径的 CPU 命令列。这称为“上下文切换”。
+由于使用多线程的程序可以在某个线程和其他线程之间反复多次进行上下文切换，因此看上去好像1个 CPU 核能够并列地执行多个线程一样。而且在具有多个 CPU 核的情况下，就不是“看上去像”了，而是真的提供了多个CPU核并行执行多个线程的技术。
+&lt;/code>&lt;/pre>
+&lt;p>&lt;strong>使用多线程容易引发的常见问题&lt;/strong>&lt;/p></description></item></channel></rss>

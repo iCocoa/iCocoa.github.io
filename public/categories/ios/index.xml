@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>IOS on Haisheng Wu's Tech Blog</title><link>https://redscarf.me/categories/ios/</link><description>Recent content in IOS on Haisheng Wu's Tech Blog</description><generator>Hugo</generator><language>en</language><lastBuildDate>Thu, 20 Dec 2018 22:21:48 +1000</lastBuildDate><atom:link href="https://redscarf.me/categories/ios/index.xml" rel="self" type="application/rss+xml"/><item><title>WebViewJavascriptBridge 源码剖析</title><link>https://redscarf.me/ios-wvjb-sc-analyse/</link><pubDate>Thu, 20 Dec 2018 22:21:48 +1000</pubDate><guid>https://redscarf.me/ios-wvjb-sc-analyse/</guid><description>&lt;p>&lt;strong>WebViewJavascriptBridge&lt;/strong> 是一个可以让 OC 与 JS 进行交互通信的第三方开源库。相比其他热门的第三方库，WebViewJavascriptBridge 代码量比较少，并且设计优雅巧妙，可以说是 “小而美”。&lt;/p>
+&lt;p>WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事先注册 handler，内部维护一个消息队列。透明的 &lt;code>iframe&lt;/code> HTML 元素和 webview 的 &lt;code>stringByEvaluatingJavaScriptFromString&lt;/code> 是通信的关键。OC 端发消息给 JS 端比较直观，调起 &lt;code>stringByEvaluatingJavaScriptFromString&lt;/code> 执行脚本传入消息即可。JS 端发消息给 OC 端，需要事先把消息存到队列中，然后借助 iframe 发起一个伪请求，伪请求会被 webview 的代理方法拦截下来，OC 端因此得知 JS 端消息队列中有消息，最后调起 &lt;code>stringByEvaluatingJavaScriptFromString&lt;/code> 方法解析 JS 方法拿到队列中的消息并处理。交互流程见下图：&lt;/p>
+&lt;p>&lt;img src="https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297150/web/webviewjsbridge_z8kdpc.jpg" alt="wbjb-sc-analyse-001">&lt;/p>
+&lt;p>整个库只有以下几个文件：&lt;/p>
+&lt;pre tabindex="0">&lt;code>WebViewJavascriptBridge.h
+WebViewJavascriptBridge.m
+WKWebViewJavascriptBridge.h 
+WKWebViewJavascriptBridge.m
+WebViewJavascriptBridgeBase.h
+WebViewJavascriptBridgeBase.m
+WebViewJavascriptBridge_JS.h
+WebViewJavascriptBridge_JS.m
+&lt;/code>&lt;/pre>&lt;p>一般使用只需要关注 &lt;code>WebViewJavascriptBridge&lt;/code> 类提供的接口，这个类的主要职责是用来做 Mac 和 iOS webview 的适配（包括 WKWebView，但是这部分代理出去给 WKWebViewJavaScriptBridge 类）并为客户端提供便利的使用接口。&lt;code>WebViewJavascriptBridgeBase&lt;/code> 类负责有关数据加工、消息队列管理、消息派发及回调的处理工作。&lt;code>WebViewJavascriptBridge_JS&lt;/code> 类包含 JS 端的实现代码，通过宏处理返回 JS 端实现代码的一个 OC 字符串，便于在适当时机将其注入到文档模型中完成 bridge 的初始化。&lt;/p></description></item><item><title>iOS 远程打包脚本制作</title><link>https://redscarf.me/ios-remote-pack/</link><pubDate>Mon, 23 Jul 2018 20:00:50 +1000</pubDate><guid>https://redscarf.me/ios-remote-pack/</guid><description>&lt;p>在 iOS 开发中，一般打发布包都是在本地打包，也就是工程师在自己开发电脑上使用 Xcode 编译并导出安装包来进行发布，为了提高效率可能会制作一些自动化打包脚本。本文聊的是远程打包的内容，通过资源拷贝及参数替换然后编译完成打包。&lt;/p>
+&lt;p>由于 HTML5 跨平台的特点，很多技术团队考虑到代码复用，在部分模块中会采用 h5 来描述界面。甚至有些不需要太复杂交互的 app，全部界面采用 h5 来编写，也就是一个 web 工程。对于大部分现有的 web 工程，能打包成 app 就已经满足了业务诉求。DCloud 团队开发的 HBuilder（IDE）工具中提供了云打包的功能，用起来很方便，简单的说，就是把 web 工程上传到云打包服务器，最后打包生成 app，点击下载即可安装使用。&lt;/p>
+&lt;p>&lt;img src="https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297147/web/dcloud-pack-param_atnmdu.png" alt="dcloud-pack-param">&lt;/p>
+&lt;p>虽然云打包服务很方便，但上传源码总感觉不太妥当，总有些秘密不想让别人看见，并且其他同事也有打包的需求，但不一定会使用 HBuilder。因此，搭建一个自己的打包服务很有必要。&lt;/p>
+&lt;p>按照 HBuilder 提供的云打包功能，先定一个初步的需求：&lt;/p>
+&lt;ul>
+&lt;li>支持修改应用 id、版本号 、icon、启动图&lt;/li>
+&lt;li>支持导入签名文件&lt;/li>
+&lt;/ul>
+&lt;p>开工！！！&lt;/p>
+&lt;h2 id="准备工作">准备工作&lt;/h2>
+&lt;p>首先，需要一台安装了 MacOS 的电脑（当做服务器使用）。&lt;/p>
+&lt;p>笔者手头上刚好有台闲置的电脑就拿来当服务器使用了，装了 WMWare，然后装了 MacOS 虚拟机（问题较多，不建议使用虚拟机）。&lt;/p>
+&lt;blockquote>
+&lt;p>物理机 windows7，内存 4G；虚拟机 MacOS，内存 3G。&lt;/p>
+&lt;/blockquote>
+&lt;p>其次，在服务器上部署一个 web 服务，提供打包交互界面方便客户端上传资源文件及下载安装包。我们的界面只提供了一个 &lt;code>www&lt;/code> zip 包的上传入口，所有应用资源及打包相关的配置文件都在里面。www 目录结构如下：&lt;/p>
+&lt;p>&lt;img src="https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297146/web/paf-www-dir_aabjio.png" alt="paf-www-dir">&lt;/p>
+&lt;h3 id="appconfigjson-文件内容">appConfig.json 文件内容&lt;/h3>
+&lt;pre tabindex="0">&lt;code>{
+	&amp;#34;id&amp;#34;:&amp;#34;com.domain.pack&amp;#34;,
+	&amp;#34;appName&amp;#34;:&amp;#34;我的应用&amp;#34;,
+	&amp;#34;debug&amp;#34;:true,
+	&amp;#34;launchPath&amp;#34;: &amp;#34;index.html&amp;#34;,
+	&amp;#34;version&amp;#34;: {
+		&amp;#34;name&amp;#34;: &amp;#34;1.0.0&amp;#34;,
+		&amp;#34;code&amp;#34;: &amp;#34;100&amp;#34;
+	},
+	...
+}
+&lt;/code>&lt;/pre>&lt;p>&lt;code>launchPath&lt;/code> 对应 web 应用入口文件，iOS 工程使用这个文件路径作为 webview 的加载入口。&lt;/p></description></item><item><title>Local and Remote Notification Programming Guide 译文</title><link>https://redscarf.me/ios-local-and-remote-notification-programming-guide/</link><pubDate>Mon, 27 Nov 2017 20:26:21 +1000</pubDate><guid>https://redscarf.me/ios-local-and-remote-notification-programming-guide/</guid><description>&lt;p>原文地址：&lt;a href="https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/">本地和远程通知编程指南&lt;/a>&lt;/p>
+&lt;h1 id="应用中的通知">应用中的通知&lt;/h1>
+&lt;h2 id="本地和远程通知概览">本地和远程通知概览&lt;/h2>
+&lt;blockquote>
+&lt;p>重要 &lt;!-- raw HTML omitted -->
+这篇文档包含开发中有关 API 或技术的初步信息，这些信息可能会改变，并且根据这篇文档来实现的软件应当在最终的操作系统软件中进行测试。&lt;/p>
+&lt;/blockquote>
+&lt;p>本地通知和远程通知是在应用有新数据可用时通知用户的两种方式，即使此时应用不在前台运行。例如，短信应用可能会让用户知道有新的短信来了，日历应用可能会通知用户即将到来的约会。本地通知和远程通知的区别很简单：&lt;/p>
+&lt;ul>
+&lt;li>对于本地通知，应用在本地配置通知的细节并把这些细节传给系统，然后由系统来处理通知的传递（当应用不在前台时）。iOS、tvOS、watchOS 都支持本地通知。&lt;/li>
+&lt;li>对于远程通知，使用公司服务器中的一个通过&lt;code>苹果推送通知服务&lt;/code>把数据推送到用户的设备。iOS、tvOS、watchOS、macOS 都支持远程通知。&lt;/li>
+&lt;/ul>
+&lt;p>本地通知和远程通知都需要添加代码来支持应用中的通知的调度和处理。对于远程通知，必须提供一个服务器环境，该环境能够接收来自用户设备的数据和发送通知相关的数据到 &lt;code>苹果推送消息服务&lt;/code> (简称 APNs，由苹果提供的用来处理远程通知传递的服务)。&lt;/p>
+&lt;h3 id="user-notifications-和-user-notifications-ui-框架">User Notifications 和 User Notifications UI 框架&lt;/h3>
+&lt;p>从 iOS 10、watchOS 3、tvOS 10 开始，User Notifications 框架提供一致的方式来和处理本地通知。除了管理本地通知，该框架也支持远程通知的处理，然而远程通知的配置仍然需要一些平台特有的 API。因为这是一个独立的框架，所以可以在应用中或者扩展中使用，比如 WatchKit 扩展。&lt;/p>
+&lt;blockquote>
+&lt;p>注意&lt;!-- raw HTML omitted -->
+macOS 上远程通知的配置和处理需要使用平台特有的方法（在 AppKit 框架中找）&lt;/p>
+&lt;/blockquote>
+&lt;p>User Notifications 框架也支持创建 &lt;em>通知服务应用扩展&lt;/em> (notification service app extension)，它可以让你在远程通知传递之前修改通知的内容。如果在应用中包含通知服务应用扩展，系统会把收到的通知在传递给用户之前先传递给扩展。可以使用这类扩展来给应用的通知实现端到端的加密、在通知传递前修改其内容，又或者下载与通知相关的额外的图片或媒体文件。&lt;/p>
+&lt;p>User Notifications UI 框架是 User Notifications 的配套，它可以让你自定义系统的通知界面的外观。使用User Notifications UI 框架来定义 &lt;em>通知内容应用扩展&lt;/em>(notification content app extension)，它的任务就是提供一个包含自定义内容的视图控制器来显示在通知界面中。系统会显示自定义视图控制器而不是默认的系统界面。可以使用这种扩展在通知界面中加入多媒体或动态内容。&lt;/p></description></item><item><title>OC 与 JS 通信的几种方式</title><link>https://redscarf.me/ios-oc-interact-with-js/</link><pubDate>Fri, 23 Jun 2017 22:57:25 +1000</pubDate><guid>https://redscarf.me/ios-oc-interact-with-js/</guid><description>&lt;ol>
+&lt;li>在代理方法中拦截协议&lt;/li>
+&lt;li>使用 JavaScriptCore&lt;/li>
+&lt;li>WKWebView 的 WKScriptMessagehandler&lt;/li>
+&lt;li>使用 NSURLProtocol 拦截请求&lt;/li>
+&lt;li>使用第三方库 WebViewJavascriptBridge&lt;/li>
+&lt;li>使用 WebSocket&lt;/li>
+&lt;/ol>
+&lt;p>这里只介绍第 6 种，其它的相关资料网上有很多。&lt;/p>
+&lt;p>使用 WebSocket 的方式需要在应用内起一个 websocket server 服务（有很多第三方的 websocket server 库），html 页面通过 Websocket 连接到服务，接着就是发送消息了，剩下的就跟代理方法拦截协议类似。&lt;/p>
+&lt;pre tabindex="0">&lt;code>// OC code, 以 PocketSocket 这个库为例
+_socketServer = [PSWebSocketServer serverWithHost:nil port:9001];
+_socketServer.delegate = self;
+_socketServer.delegateQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+[_socketServer start];
+ 
+#pragma mark - PSWebSocketServerDelegate
+- (void)serverDidStart:(PSWebSocketServer *)server 
+{
+ NSLog(@&amp;#34;Server did start…&amp;#34;);
+}
+
+- (void)serverDidStop:(PSWebSocketServer *)server 
+{
+ NSLog(@&amp;#34;Server did stop…&amp;#34;);
+}
+
+- (BOOL)server:(PSWebSocketServer *)server acceptWebSocketWithRequest:(NSURLRequest *)request 
+{
+ NSLog(@&amp;#34;Server should accept request: %@&amp;#34;, request);
+ return YES;
+}
+
+- (void)server:(PSWebSocketServer *)server webSocket:(PSWebSocket *)webSocket didReceiveMessage:(id)message 
+{
+ // 在这里拦截
+ NSLog(@&amp;#34;Server websocket did receive message: %@&amp;#34;, message);
+ NSString *text = message;
+ NSURL *url = [NSURL URLWithString:text];
+ if ([url.scheme isEqualToString:@&amp;#34;camera&amp;#34;]) {
+ ......
+ }
+}
+
+- (void)server:(PSWebSocketServer *)server webSocketDidOpen:(PSWebSocket *)webSocket
+{
+ NSLog(@&amp;#34;Server websocket did open&amp;#34;);
+}
+
+- (void)server:(PSWebSocketServer *)server didFailWithError:(NSError *)error
+{
+ NSLog(@&amp;#34;Server did fail with error: %@&amp;#34;, error);
+}
+
+- (void)server:(PSWebSocketServer *)server webSocket:(PSWebSocket *)webSocket didCloseWithCode:(NSInteger)code reason:(NSString *)reason wasClean:(BOOL)wasClean 
+{
+ NSLog(@&amp;#34;Server websocket did close with code: %@, reason: %@, wasClean: %@&amp;#34;, @(code), reason, @(wasClean));
+}
+
+- (void)server:(PSWebSocketServer *)server webSocket:(PSWebSocket *)webSocket didFailWithError:(NSError *)error 
+{
+ NSLog(@&amp;#34;Server websocket did fail with error: %@&amp;#34;, error);
+}	
+&lt;/code>&lt;/pre>&lt;pre tabindex="0">&lt;code>// JS code 
+var wsServer = &amp;#39;ws://localhost:9001&amp;#39;; 
+var websocket = new WebSocket(wsServer); 
+websocket.onopen = function (evt) { onOpen(evt) }; 
+websocket.onclose = function (evt) { onClose(evt) }; 
+websocket.onmessage = function (evt) { onMessage(evt) }; 
+websocket.onerror = function (evt) { onError(evt) };
+
+function onOpen(evt) { 
+	console.log(&amp;#34;Connected to WebSocket server.&amp;#34;); 
+}
+function onClose(evt) { 
+	console.log(&amp;#34;Disconnected&amp;#34;); 
+} 
+function onMessage(evt) {
+	console.log(&amp;#34;Recieve data: &amp;#34; + evt.data); 
+} 
+function onError(evt) { 
+	console.log(&amp;#39;Error occured: &amp;#39; + evt.data); 
+}
+
+// 发送消息
+websocket.send(&amp;#34;camera://openCamera?index=1&amp;amp;quality=high&amp;amp;callback=callbackFunction);
+function callbackFunction(data){
+	
+}
+&lt;/code>&lt;/pre>&lt;p>参考：&lt;/p></description></item><item><title>iOS Hook WebView 的代理方法</title><link>https://redscarf.me/ios-hook-uiwebview-delegate-method/</link><pubDate>Tue, 18 Oct 2016 20:09:01 +1000</pubDate><guid>https://redscarf.me/ios-hook-uiwebview-delegate-method/</guid><description>&lt;blockquote>
+&lt;p>国内 DCloud 团队推出的 HTML5+ 技术框架可以用来开发 Hybrid 应用。经过调研，我们决定试一试 。框架的核心原理是使用 iOS 系统原生 UIWebView 和 WKWebView 来加载资源并渲染界面，Native 的能力（如拍照、蓝牙）通过自定义插件来提供。&lt;/p>
+&lt;/blockquote>
+&lt;p>我们的应用有个需求，就是在 webview 加载完页面或者加载页面之前加入一些东西。比如：加载完页面后，根据 HTML 的 title 标签来设置导航栏标题。&lt;/p>
+&lt;p>原生想要插手页面加载周期，只能靠代理方法。但是因为没法修改源码，所以只能找其它办法。主要思路是：使用 Method Swizzle 找出代理对象然后再换掉代理方法实现。&lt;/p>
+&lt;p>以 UIWebView 为例，具体操作如下：&lt;/p>
+&lt;p>&lt;strong>第一步，通过交换 setDelegate 的实现，找到目标代理对象所属的类；&lt;/strong>&lt;/p>
+&lt;pre tabindex="0">&lt;code>UIWebView+Intercepter.m
+
+- (void)p_setDelegate:(id&amp;lt;UIWebViewDelegate&amp;gt;)delegate
+{
+ [self p_setDelegate:delegate];
+ Class delegateClass = [self.delegate class];
+ // 进一步交换 delegateClass 的代理方法
+ [UIWebViewDelegateHook exchangeUIWebViewDelegateMethod:delegateClass];
+}
+
+#pragma mark - Method Swizzling
++ (void)load {
+ static dispatch_once_t onceToken;
+ dispatch_once(&amp;amp;onceToken, ^{
+ Class class = [super class];
+ 
+ // When swizzling a class method, use the following:
+ // Class class = object_getClass((id)self);
+ 
+ SEL originalSelector = @selector(setDelegate:);
+ SEL swizzledSelector = @selector(p_setDelegate:);
+ 
+ Method originalMethod = class_getInstanceMethod(class, originalSelector);
+ Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector);
+ 
+ BOOL didAddMethod =
+ class_addMethod(class,
+ originalSelector,
+ method_getImplementation(swizzledMethod),
+ method_getTypeEncoding(swizzledMethod));
+ 
+ if (didAddMethod) {
+ class_replaceMethod(class,
+ swizzledSelector,
+ method_getImplementation(originalMethod),
+ method_getTypeEncoding(originalMethod));
+ } else {
+ method_exchangeImplementations(originalMethod, swizzledMethod);
+ }
+ 
+ });
+}
+&lt;/code>&lt;/pre>&lt;p>&lt;strong>第二步，把目标代理对象所属类的代理方法实现换成我们自己写的方法实现。&lt;/strong>&lt;/p></description></item><item><title>iOS 10 需要在 info.plist 中添加权限设置</title><link>https://redscarf.me/ios-ios10-user-privacy/</link><pubDate>Fri, 07 Oct 2016 22:35:29 +1000</pubDate><guid>https://redscarf.me/ios-ios10-user-privacy/</guid><description>&lt;p>iOS 10 开始对隐私权限更加严格, 如需使用隐私权限需要在工程的 &lt;code>info.plist&lt;/code> 文件中声明,如果不声明程序在调用隐私权限（如相机）时应用程序会崩溃。&lt;/p>
+&lt;p>&lt;img src="https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297000/iOS/ios10-privacy-info-plist_damui3.png" alt="infoPlist">&lt;/p>
+&lt;p>key 可以从下拉列表选择，value 为弹框提示文字（类型 String）&lt;/p>
+&lt;table>
+ &lt;thead>
+ &lt;tr>
+ &lt;th style="text-align: center">权限名称&lt;/th>
+ &lt;th style="text-align: center">Key 值&lt;/th>
+ &lt;/tr>
+ &lt;/thead>
+ &lt;tbody>
+ &lt;tr>
+ &lt;td style="text-align: center">通讯录&lt;/td>
+ &lt;td style="text-align: center">NSContactsUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">麦克风&lt;/td>
+ &lt;td style="text-align: center">NSMicrophoneUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">相册&lt;/td>
+ &lt;td style="text-align: center">NSPhotoLibraryUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">相机&lt;/td>
+ &lt;td style="text-align: center">NSCameraUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">持续获取地理位置&lt;/td>
+ &lt;td style="text-align: center">NSLocationAlwaysUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">使用时获取地理位置&lt;/td>
+ &lt;td style="text-align: center">NSLocationWhenInUseUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">蓝牙&lt;/td>
+ &lt;td style="text-align: center">NSBluetoothPeripheralUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">语音转文字&lt;/td>
+ &lt;td style="text-align: center">NSSpeechRecognitionUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">日历&lt;/td>
+ &lt;td style="text-align: center">NSCalendarsUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;/tbody>
+&lt;/table></description></item><item><title>Grand Central Dispatch</title><link>https://redscarf.me/ios-gcd/</link><pubDate>Mon, 05 Jan 2015 20:13:18 +1000</pubDate><guid>https://redscarf.me/ios-gcd/</guid><description>&lt;p>&lt;strong>GCD&lt;/strong>（Grand Central Dispatch）是异步执行任务的技术之一。&lt;/p>
+&lt;p>一般将应用程序中记述的线程管理用的代码在系统级中实现。开发者只需要定义想执行的任务并追加到适当的 Dispatch Queue 中，GCD 就能生成必要的线程并计划执行任务。由于线程管理是作为系统的一部分来实现的，因此可统一管理，也可执行任务，这样就比以前的线程更有效率。&lt;/p>
+&lt;pre tabindex="0">&lt;code>dispatch_queue_t queue = dispatch_queue_create(&amp;#34;myQueue&amp;#34;, DISPATCH_QUEUE_CONCURRENT);
+dispatch_async(queue, ^{
+ /**
+ * 长时间处理
+ * 例如：AR用图像识别、数据库访问
+ */
+ 
+ /**
+ * 长时间处理结束，主线程使用该处理结果
+ */
+ 
+ dispatch_async(dispatch_get_main_queue(), ^{
+ /**
+ * 只在主线程可以执行的处理
+ * 例如用户界面刷新
+ */
+ });
+});
+&lt;/code>&lt;/pre>&lt;p>在导入 GCD 之前，Cocoa 框架提供了 NSObject 类的&lt;code>performSelectorInBackground:withObject&lt;/code>实例方法和&lt;code>performSelectorOnMainThread&lt;/code>实例方法等简单的多线程编程技术。&lt;/p>
+&lt;p>&lt;strong>线程&lt;/strong>&lt;/p>
+&lt;pre>&lt;code>线程是程序中一个单一的顺序控制流程。进程内一个相对独立的、可调度的执行单元，是系统独立调度和分派 CPU 的基本单位。在单个程序中同时运行多个线程完成不同的工作，称为多线程。
+“一个 CPU 执行的 CPU 命令列为一条无分叉路径”即为“线程”。
+现在一个物理的 CPU 芯片实际上有64个（64核）CPU，尽管如此，“一个 CPU 执行的 CPU 命令列为一条无分叉路径”仍然不变。
+	
+OS X 和 iOS 的核心 XNU 内核在发生操作系统事件时（如每隔一定时间，唤起系统调用等情况）会切换执行路径。执行中路径的状态，例如CPU的寄存器等信息保存到各自路径专用的内存块中，从切换目标路径专用的内存块中，复原 CPU 寄存器等信息，继续执行切换路径的 CPU 命令列。这称为“上下文切换”。
+由于使用多线程的程序可以在某个线程和其他线程之间反复多次进行上下文切换，因此看上去好像1个 CPU 核能够并列地执行多个线程一样。而且在具有多个 CPU 核的情况下，就不是“看上去像”了，而是真的提供了多个CPU核并行执行多个线程的技术。
+&lt;/code>&lt;/pre>
+&lt;p>&lt;strong>使用多线程容易引发的常见问题&lt;/strong>&lt;/p></description></item><item><title>Auto Layout 知识点梳理</title><link>https://redscarf.me/ios-autolayout/</link><pubDate>Wed, 15 Oct 2014 22:29:37 +1000</pubDate><guid>https://redscarf.me/ios-autolayout/</guid><description>&lt;p>视图需要有确定的位置与大小才能正确显示在屏幕上。Auto Layout 使用对齐矩阵来确定视图的位置与大小，也就是所谓的约束。我们创建的每一条规则都规定了界面的一部分与另一部分的关系，某一部分可以由另一部分计算得出结果。&lt;/p>
+&lt;p>&lt;code>y = ax + b;&lt;/code> 是一种线性关系。&lt;/p>
+&lt;p>创建约束的常见的方式：&lt;/p>
+&lt;ul>
+&lt;li>Xib&lt;/li>
+&lt;li>NSLayoutConstraint&lt;/li>
+&lt;li>VFS&lt;/li>
+&lt;/ul>
+&lt;p>第一种，可以在(Interface Builder)IB中布局约束，并且根据需求自定义它们。&lt;/p>
+&lt;p>第二种，可以使用代码创建单个约束。NSLayoutConstraint 类提供&lt;code>constraintWithItem:attribute:relatedBy:toItem:attribute:multiplier:contant:&lt;/code>方法，可以让你每次创建一个约束，它将某项的属性关联到另一项。&lt;/p>
+&lt;p>第三种，使用可视化格式语言来表示各项是如何沿着垂直和水平坐标轴布局的。&lt;/p>
+&lt;p>所有约束都是 NSLayoutConstraint 类的成员，无论你是以何种方式创建它们的。每个约束都在一个 Objective—C 对象中存储&lt;code>y = ax + b&lt;/code>规则，并且通过 Auto Layout 引擎来表达该规则。可视化约束 是另一种实现相同效果的工具。&lt;/p></description></item><item><title>ARC</title><link>https://redscarf.me/ios-arc/</link><pubDate>Mon, 22 Sep 2014 21:22:25 +1000</pubDate><guid>https://redscarf.me/ios-arc/</guid><description>&lt;h2 id="什么是自动引用计数">什么是自动引用计数&lt;/h2>
+&lt;p>自动引用计数（ARC，Automatic Reference Counting）是指内存管理中对引用采取自动计数的技术。要使用 ARC，需要满足以下条件：&lt;/p>
+&lt;ul>
+&lt;li>使用 Xcode4.2 或以上版本&lt;/li>
+&lt;li>使用 LLVM 编译器 3.0 或以上版本&lt;/li>
+&lt;li>编译器选项中设置 ARC 有效&lt;/li>
+&lt;/ul>
+&lt;p>生活例子：办公室开关灯&lt;/p>
+&lt;ol>
+&lt;li>最早进入办公室的人开灯。 count = 1&lt;/li>
+&lt;li>之后进入办公室的人，需要照明。 count = 2&lt;/li>
+&lt;li>下班离开办公室的人，不需要照明。 count = 1&lt;/li>
+&lt;li>最后离开办公室的人关灯。（此时已无人需要照明） count = 0&lt;/li>
+&lt;/ol>
+&lt;h2 id="内存管理">内存管理&lt;/h2>
+&lt;p>思考方式：&lt;/p>
+&lt;ul>
+&lt;li>自己生成的对象，自己持有&lt;/li>
+&lt;li>非自己生成的对象，自己也能持有&lt;/li>
+&lt;li>不再需要自己持有的对象时释放&lt;/li>
+&lt;li>非自己持有的对象无法释放&lt;/li>
+&lt;/ul>
+&lt;p>表 1- 2 对象操作与 Objective-C 方法的对应&lt;/p>
+&lt;table>
+ &lt;thead>
+ &lt;tr>
+ &lt;th>对象操作&lt;/th>
+ &lt;th style="text-align: center">Objective-C方法&lt;/th>
+ &lt;/tr>
+ &lt;/thead>
+ &lt;tbody>
+ &lt;tr>
+ &lt;td>生成并持有对象&lt;/td>
+ &lt;td style="text-align: center">alloc/new/copy/mutableCopy方法&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>持有对象&lt;/td>
+ &lt;td style="text-align: center">retain方法&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>释放对象&lt;/td>
+ &lt;td style="text-align: center">release方法&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>废弃对象&lt;/td>
+ &lt;td style="text-align: center">dealloc方法&lt;/td>
+ &lt;/tr>
+ &lt;/tbody>
+&lt;/table>
+&lt;p>&lt;strong>区域(zone)&lt;/strong>&lt;/p>
+&lt;p>&lt;code>NSDefaultMallocZone&lt;/code>、&lt;code>NSZoneMalloc&lt;/code> 等名称中包含的&lt;code>NSZone&lt;/code>是什么呢？它是为防止内存碎片化而引入的结构。对内存分配的区域本身进行多重化管理，根据使用对象的目的、对象的大小分配内存，从而提高了内存管理的效率。但是，如同苹果官方文档 Programming With ARC Release Notes 中所说，现在的运行时系统只是简单地忽略了区域的概念。运行时系统中的内存管理本身已极具效率，使用区域来管理内存反而会引起内存使用效率低下以及源代码复杂化问题。&lt;/p>
+&lt;p>&lt;strong>修饰符&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>__strong 修饰符&lt;/li>
+&lt;li>__weak 修饰符&lt;/li>
+&lt;li>__unsafe_unretained 修饰符&lt;/li>
+&lt;li>__autoreleasing 修饰符&lt;/li>
+&lt;/ul>
+&lt;p>__unsafe_unretained 修饰符正如其名 unsafe 所示，是不安全的所有权修饰符。尽管 ARC 式的内存管理是编译器的工作，但附有 __unsafe_unretained 修饰符的变量不属于编译器的内存管理对象。同附有 __weak 修饰符的变量一样，因为自己生成并持有的对象不能继续为自己所有，所以生成的对象会立即被释放。&lt;/p></description></item><item><title>iOS Block</title><link>https://redscarf.me/ios-blocks/</link><pubDate>Sat, 20 Sep 2014 20:18:23 +1000</pubDate><guid>https://redscarf.me/ios-blocks/</guid><description>&lt;p>&lt;code>blocks&lt;/code> 是 C 语言的扩充功能。blocks 是带有自动变量（局部变量）的匿名函数。&lt;/p>
+&lt;h3 id="截获自动变量">截获自动变量&lt;/h3>
+&lt;pre tabindex="0">&lt;code>int main()
+{
+	int dmy = 256;
+	int val = 10;
+	const char *fmt = &amp;#34;val = %d\n&amp;#34;;
+	void (^blk)(void) = ^{
+		printf(fmt,val);
+	};
+	
+	val = 2;
+	fmt = &amp;#34;These value were changed. val = %d\n&amp;#34;;
+	
+	blk();
+	
+	return 0;
+}
+&lt;/code>&lt;/pre>&lt;p>结果：&lt;code>val = 10&lt;/code>&lt;/p>
+&lt;p>分析：block 语法的表达式使用的是它之前声明的自动变量 fmt 和 val。block 表达式截获所使用的自动变量的值为瞬间值。因为 block 表达式保存了自动变量的值（截获），所以在执行 block 语法后，即使改写了 block 中使用的自动变量的值也不会影响 block 执行的结果。&lt;/p>
+&lt;p>需要在 block 中修改一个变量的值，需要使用 __block 说明符。&lt;/p>
+&lt;h3 id="block-的实质">block 的实质&lt;/h3>
+&lt;p>block 实际上是作为极普通的 C 语言源代码来处理的。通过支持 block 的编译器，含有 block 语法的源代码转换为一般 C 语言编译器能够处理的源代码，并作为极为普通的 C 语言代码被编译。&lt;/p></description></item><item><title>iOS 应用的 main.m 文件</title><link>https://redscarf.me/ios-main/</link><pubDate>Sun, 13 Jul 2014 21:15:12 +1000</pubDate><guid>https://redscarf.me/ios-main/</guid><description>&lt;p>在项目导航面板中选中 main.m ，可以看到&lt;/p>
+&lt;pre tabindex="0">&lt;code>int main(int argc, char * argv[]) {
+ @autoreleasepool {
+ return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
+ }
+}
+&lt;/code>&lt;/pre>&lt;p>这是 iOS 应用的入口函数。UIApplicationMain 函数会创建一个 UIApplication 对象。每个 iOS 应用都有且只有一个 UIApplication 对象（单例），该对象的作用时维护运行循环。一旦程序创建了某个 UIApplication 对象，该对象的运行循环就会一直循环下去，main() 的执行也会因此阻塞。&lt;/p>
+&lt;p>此外，UIApplicationMain 函数还会创建某个指定类(此处为 AppDelegate)的对象，并将其设置为 UIApplication 对象的 delegate。UIApplicationMain 函数的第三个实参为 NSString 类型，指定了该对象所属的类。UIApplication 的 delegate 都需要遵守 UIApplicationDelegate 协议。&lt;/p>
+&lt;p>&lt;code>@interface AppDelegate : UIResponder &amp;lt;UIApplicationDelegate&amp;gt;&lt;/code>&lt;/p>
+&lt;p>在应用启动运行循环时，UIApplication 对象会在应用出现相应状态变化时，向其 delegate 发送特定的消息。如：&lt;/p>
+&lt;pre tabindex="0">&lt;code>- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions;
+- (void)applicationWillResignActive:(UIApplication *)application;
+- (void)applicationDidEnterBackground:(UIApplication *)application; 
+- (void)applicationWillEnterForeground:(UIApplication *)application;
+- (void)applicationDidBecomeActive:(UIApplication *)application;
+- (void)applicationWillTerminate:(UIApplication *)application;
+&lt;/code>&lt;/pre>&lt;p>UIApplication 负责建立应用程序的事件循环（Event Loop），事件循环中可以不断接收交互操作，比如屏幕触摸手势、各类传感器（重力加速器、陀螺仪等）等。&lt;/p></description></item></channel></rss>

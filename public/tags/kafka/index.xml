@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Kafka on Haisheng Wu's Tech Blog</title><link>https://redscarf.me/tags/kafka/</link><description>Recent content in Kafka on Haisheng Wu's Tech Blog</description><generator>Hugo</generator><language>en</language><lastBuildDate>Thu, 27 Jan 2022 20:56:50 +1000</lastBuildDate><atom:link href="https://redscarf.me/tags/kafka/index.xml" rel="self" type="application/rss+xml"/><item><title>Kafka 总结</title><link>https://redscarf.me/kafka-1/</link><pubDate>Thu, 27 Jan 2022 20:56:50 +1000</pubDate><guid>https://redscarf.me/kafka-1/</guid><description>&lt;h3 id="consumer-是推还是拉">consumer 是推还是拉？&lt;/h3>
+&lt;p>&lt;a href="https://kafka.apache.org/documentation/#design_pull">https://kafka.apache.org/documentation/#design_pull&lt;/a>
+kafka 生产者端生成消息推送（push）到 broker，消费者端从 broker 拉取（pull）消息。&lt;/p>
+&lt;p>&lt;strong>统一采用 pull 的方式？&lt;/strong>
+boker 从生产者 pull 消息。在生产者数量庞大的场景下，broker 需要管理维护很多的关系，简直是梦魇。所以采用的是生产者往 broker push 消息。&lt;/p>
+&lt;p>&lt;strong>统一采用 push 的方式？&lt;/strong>
+broker 往 consumer push 消息。在 consumer 多样化的场景下，如果生产者的生产速率远远大于消费者，broker 控制不好，push 会造成 consumer 不堪重负。反之，由 consumer 根据自身处理速率来决定何时从 broker 拉取消息，会更好。采用 pull 的弊端在于，如果 broker 没有消息，那么就会空转，这可以通过在调用 poll 接口时传入等待时间阻塞或者传入批次数据包大小来等待阻塞。&lt;/p>
+&lt;h3 id="kafka-的-ack-机制">kafka 的 ack 机制&lt;/h3>
+&lt;p>客户端连接到 leader broker 上，发送消息之后，等待或不等待 leader broker 的 ack（是否等待取决于参数&lt;code>request.required.acks&lt;/code> 配置）。比如：
+客户端设置 &lt;code>acks=0&lt;/code>，客户端不作任何等待，即使消息没有写入 kafka 集群。
+客户端设置 &lt;code>acks=1&lt;/code>，客户端会等待 Leader 副本成功写入后返回的确认，但如果 Leader 副本在消息被同步到其他副本之前崩溃，消息可能会丢失。
+客户端设置 &lt;code>acks=all&lt;/code> 或 &lt;code>acks=-1&lt;/code>参数，leader 在接收到客户端的消息之后，先写入日志文件，然后往同步副本（ISR）发送数据，等所有的 follower 都确认消息写入成功后，leader 再给客户端发送 ack 确认。&lt;/p></description></item></channel></rss>
