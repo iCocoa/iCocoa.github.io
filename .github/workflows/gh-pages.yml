@@ -17,10 +17,19 @@ jobs:
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
         with:
-          hugo-version: 'latest'
+          hugo-version: '0.139.3'
 
       - name: Build
         run: hugo --minify
+
+      - name: Check public directory
+        run: |
+          if [ -d "./public" ]; then
+            echo "public directory exists"
+          else
+            echo "public directory does not exist"
+            exit 1
+          fi
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
