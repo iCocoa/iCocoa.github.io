@@ -1,4 +1,19 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0"><channel><title>Android - 分类 - Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/categories/android/</link><description>Android - 分类 - Haisheng Wu's Tech Blog</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>whs543@sina.com (Haisheng Wu)</managingEditor><webMaster>whs543@sina.com (Haisheng Wu)</webMaster><lastBuildDate>Sat, 09 Jun 2018 12:36:16 +1000</lastBuildDate><atom:link href="http://www.redscarf.me/categories/android/" rel="self" type="application/rss+xml"/><item><title>Android Gradle 注入编译变量</title><link>http://www.redscarf.me/android-gradle-build/</link><pubDate>Sat, 09 Jun 2018 12:36:16 +1000</pubDate><author>whs543@sina.com</author><dc:creator>Haisheng Wu</dc:creator><guid>http://www.redscarf.me/android-gradle-build/</guid><description><![CDATA[最近为了制作 Android 应用打包脚本，学习了一下 gradle。Gradle 构建系统语法简洁、功能强大、配置灵活，笔者只是把它当作一个构建工具来使用，基于它所提供的便利制作可以修改版本号、编译号、id 及导入证书的脚本。
-对于一个项目或者一个工程，Gradle 可以定义多个构建任务，debug 和 release 是常见的两个构建任务，用户还可以根据需要自定义自己的构建任务，如测试构建任务和预发布构建任务，甚至是针对不同发布渠道的构建任务。这里只用到 debug 任务。
-gradle 命令行支持传入自定义参数，并在编译过程注入这些参数。
-修改 appid 及 版本号 修改 build.gradle 文件 1 2 3 4 5 6 7 8 9 10 11  android { compileSdkVersion 21 buildToolsVersion &#39;26.0.2&#39; defaultConfig { applicationId project.hasProperty(&#39;applicationId&#39;) ? applicationId : &#34;com.domain.myApp&#34; minSdkVersion 14 targetSdkVersion 21 versionCode project.hasProperty(&#39;versionCode&#39;) ? versionCode.toInteger() : 100 versionName project.hasProperty(&#39;versionName&#39;) ? versionName : &#34;1.0.0&#34; testInstrumentationRunner &#34;android.support.test.runner.AndroidJUnitRunner&#34; }   命令行中传入对应 key 的参数 1  gradle assembleDebug -PversionCode=&#34;200&#34; -PversionName=&#34;2.]]></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Android on Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/categories/android/</link><description>Recent content in Android on Haisheng Wu's Tech Blog</description><generator>Hugo</generator><language>en</language><lastBuildDate>Sat, 09 Jun 2018 12:36:16 +1000</lastBuildDate><atom:link href="http://www.redscarf.me/categories/android/index.xml" rel="self" type="application/rss+xml"/><item><title>Android Gradle 注入编译变量</title><link>http://www.redscarf.me/android-gradle-build/</link><pubDate>Sat, 09 Jun 2018 12:36:16 +1000</pubDate><guid>http://www.redscarf.me/android-gradle-build/</guid><description>&lt;p>最近为了制作 Android 应用打包脚本，学习了一下 gradle。Gradle 构建系统语法简洁、功能强大、配置灵活，笔者只是把它当作一个构建工具来使用，基于它所提供的便利制作可以修改版本号、编译号、id 及导入证书的脚本。&lt;/p>
+&lt;p>对于一个项目或者一个工程，Gradle 可以定义多个构建任务，debug 和 release 是常见的两个构建任务，用户还可以根据需要自定义自己的构建任务，如测试构建任务和预发布构建任务，甚至是针对不同发布渠道的构建任务。这里只用到 debug 任务。&lt;/p>
+&lt;p>gradle 命令行支持传入自定义参数，并在编译过程注入这些参数。&lt;/p>
+&lt;h2 id="修改-appid-及-版本号">修改 appid 及 版本号&lt;/h2>
+&lt;h3 id="修改-buildgradle-文件">修改 build.gradle 文件&lt;/h3>
+&lt;pre tabindex="0">&lt;code>android {
+ compileSdkVersion 21
+ buildToolsVersion &amp;#39;26.0.2&amp;#39;
+ defaultConfig {
+ applicationId project.hasProperty(&amp;#39;applicationId&amp;#39;) ? applicationId : &amp;#34;com.domain.myApp&amp;#34;
+ minSdkVersion 14
+ targetSdkVersion 21
+ versionCode project.hasProperty(&amp;#39;versionCode&amp;#39;) ? versionCode.toInteger() : 100
+ versionName project.hasProperty(&amp;#39;versionName&amp;#39;) ? versionName : &amp;#34;1.0.0&amp;#34;
+ testInstrumentationRunner &amp;#34;android.support.test.runner.AndroidJUnitRunner&amp;#34;
+ }
+&lt;/code>&lt;/pre>&lt;h3 id="命令行中传入对应-key-的参数">命令行中传入对应 key 的参数&lt;/h3>
+&lt;pre tabindex="0">&lt;code>gradle assembleDebug -PversionCode=&amp;#34;200&amp;#34; -PversionName=&amp;#34;2.0.0&amp;#34; -PapplicationId=&amp;#34;com.domain.myApp.debug&amp;#34;
+&lt;/code>&lt;/pre>&lt;p>修改应用 id 的最好同时修改包名，不然会有包名冲突，修改包名需要修改 &lt;code>AndroidManifest.xml&lt;/code> 文件，先在 &lt;code>build.gradle&lt;/code> 文件中使用 &lt;code>manifestPlaceholders &lt;/code> 属性定义一个键：&lt;/p></description></item></channel></rss>

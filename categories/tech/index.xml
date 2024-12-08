@@ -1,0 +1,806 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tech on Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/categories/tech/</link><description>Recent content in Tech on Haisheng Wu's Tech Blog</description><generator>Hugo</generator><language>en</language><lastBuildDate>Tue, 25 Jul 2023 20:17:32 +1000</lastBuildDate><atom:link href="http://www.redscarf.me/categories/tech/index.xml" rel="self" type="application/rss+xml"/><item><title>数据库的动态列</title><link>http://www.redscarf.me/db-dynamic-column/</link><pubDate>Tue, 25 Jul 2023 20:17:32 +1000</pubDate><guid>http://www.redscarf.me/db-dynamic-column/</guid><description>&lt;h1 id="动态列的几种设计思路">动态列的几种设计思路&lt;/h1>
+&lt;p>在需求开发过程中，我们有时会遇到一种场景：某个具体业务中的属性是动态的。在理想情况下，我们可以使用穷举法对所有可能的属性进行分析，然后进行分类，最终形成一套解决方案。然而，现实往往是骨感的，Leader和客户通常不会给我们这个时间。因此，我们需要探讨一些更为实际的解决方案。&lt;/p>
+&lt;h2 id="一使用数据库ddl进行动态创建">一、使用数据库DDL进行动态创建&lt;/h2>
+&lt;p>&lt;strong>优点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>操作简单，只需通过SQL管理即可实现。&lt;/li>
+&lt;/ol>
+&lt;p>&lt;strong>缺点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>不同情况下的动态字段增加会导致表结构膨胀。&lt;/li>
+&lt;li>在已有数据的表中修改字段容易导致锁表，影响性能。&lt;/li>
+&lt;/ol>
+&lt;h2 id="二使用数据库预留字段">二、使用数据库预留字段&lt;/h2>
+&lt;p>&lt;strong>优点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>与数据库无关，对业务侵入性小。&lt;/li>
+&lt;/ol>
+&lt;p>&lt;strong>缺点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>扩展性差，超出预留字段范围后如何处理新字段？&lt;/li>
+&lt;li>可读性差，预留字段通常为&lt;code>attr1&lt;/code>、&lt;code>attr2&lt;/code>等，影响字段的可读性。&lt;/li>
+&lt;li>性能较低，为兼容多种数据类型，预留字段通常采用较长的文本数据类型存储，影响数据库性能。&lt;/li>
+&lt;/ol>
+&lt;h2 id="三使用数据库中的json数据类型">三、使用数据库中的JSON数据类型&lt;/h2>
+&lt;p>&lt;strong>优点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>使用简单，绝大多数编程语言都支持JSON操作，方便快捷。&lt;/li>
+&lt;li>对于MySQL或PostgreSQL等数据库，已原生支持JSON字段，可基于JSON进行扩展查询。&lt;/li>
+&lt;li>JSON采用&lt;code>key:value&lt;/code>形式存储数据，可避免字段可读性差的问题，通过规范命名提高可读性。&lt;/li>
+&lt;li>扩展性高，增加或删除字段实现简单，直接移除&lt;code>key&lt;/code>即可，不影响表性能。&lt;/li>
+&lt;/ol>
+&lt;p>&lt;strong>缺点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>JSON字段查询操作与普通字段稍有差异，有一定复杂度。&lt;/li>
+&lt;li>JSON字段的索引性能有待提高。&lt;/li>
+&lt;/ol>
+&lt;h2 id="四使用nosql数据库">四、使用NoSQL数据库&lt;/h2>
+&lt;p>&lt;strong>优点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>采用MongoDB等JSON数据库，可以快速扩展。&lt;/li>
+&lt;li>专业数据存储，查询等性能可针对优化，性能高。&lt;/li>
+&lt;/ol>
+&lt;p>&lt;strong>缺点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>需要一定的学习成本。&lt;/li>
+&lt;/ol>
+&lt;p>综上所述，第一种和第二种方案若非必要，不建议采用。第三种方案在中小项目中能应对绝大多数需求。如果存储的数据较多且性能要求较高，可以考虑采用第四种方案或第三、四种方案相结合。&lt;/p>
+&lt;hr>
+&lt;h1 id="支持动态列的数据库">支持动态列的数据库&lt;/h1>
+&lt;h2 id="mariadb">MariaDB&lt;/h2>
+&lt;p>通过创建BLOB列（最大64k？），可以使用&lt;code>mariadb-dynamic-columns&lt;/code>实现动态列。&lt;/p>
+&lt;h3 id="示例">示例：&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sql" data-lang="sql">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">CREATE&lt;/span> &lt;span style="color:#66d9ef">TABLE&lt;/span> items
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> id INT &lt;span style="color:#66d9ef">NOT&lt;/span> &lt;span style="color:#66d9ef">NULL&lt;/span> &lt;span style="color:#66d9ef">PRIMARY&lt;/span> &lt;span style="color:#66d9ef">KEY&lt;/span> AUTO_INCREMENT,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name varchar(&lt;span style="color:#ae81ff">100&lt;/span>) &lt;span style="color:#66d9ef">NOT&lt;/span> &lt;span style="color:#66d9ef">NULL&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> attributes BLOB
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol>
+&lt;li>&lt;strong>插入数据时使用特定函数（&lt;code>COLUMN_CREATE&lt;/code>）指定动态列的数据结构，&lt;code>key/value&lt;/code>形式：&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sql" data-lang="sql">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">INSERT&lt;/span> &lt;span style="color:#66d9ef">INTO&lt;/span> items (name, attributes) &lt;span style="color:#66d9ef">VALUES&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>(&lt;span style="color:#e6db74">&amp;#39;MariaDB t-shirt&amp;#39;&lt;/span>, COLUMN_CREATE(&lt;span style="color:#e6db74">&amp;#39;colour&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;blue&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;size&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;XXL&amp;#39;&lt;/span>)),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>(&lt;span style="color:#e6db74">&amp;#39;MariaDB t-shirt&amp;#39;&lt;/span>, COLUMN_CREATE(&lt;span style="color:#e6db74">&amp;#39;colour&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;blue&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;size&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;XL&amp;#39;&lt;/span>)),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>(&lt;span style="color:#e6db74">&amp;#39;Samsung Galaxy S5&amp;#39;&lt;/span>, COLUMN_CREATE(&lt;span style="color:#e6db74">&amp;#39;colour&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;white&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;OS&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;Android&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;type&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;phone&amp;#39;&lt;/span>)),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>(&lt;span style="color:#e6db74">&amp;#39;Samsung Galaxy Pro 3&amp;#39;&lt;/span>, COLUMN_CREATE(&lt;span style="color:#e6db74">&amp;#39;colour&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;white&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;size&amp;#39;&lt;/span>,&lt;span style="color:#ae81ff">8&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;OS&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;Android&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;resolution&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;1920x1200&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;type&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;tablet&amp;#39;&lt;/span>));
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="2">
+&lt;li>&lt;strong>查询时使用&lt;code>COLUMN_JSON&lt;/code>函数，返回JSON格式的数据：&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sql" data-lang="sql">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">SELECT&lt;/span> name &lt;span style="color:#66d9ef">AS&lt;/span> Item,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>COLUMN_JSON(attributes) &lt;span style="color:#66d9ef">AS&lt;/span> &lt;span style="color:#e6db74">&amp;#39;Dynamic Columns&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">FROM&lt;/span> items &lt;span style="color:#66d9ef">LIMIT&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="3">
+&lt;li>&lt;strong>使用&lt;code>COLUMN_LIST&lt;/code>函数列举列中包含的属性，如&lt;code>colour&lt;/code>、&lt;code>size&lt;/code>：&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sql" data-lang="sql">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">SELECT&lt;/span> name &lt;span style="color:#66d9ef">AS&lt;/span> Item,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>COLUMN_LIST(attributes) &lt;span style="color:#66d9ef">AS&lt;/span> &lt;span style="color:#e6db74">&amp;#39;Attribute Names&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">FROM&lt;/span> items;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="4">
+&lt;li>&lt;strong>查询动态列中具体的某个属性，如&lt;code>colour&lt;/code>：&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sql" data-lang="sql">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">SELECT&lt;/span> name &lt;span style="color:#66d9ef">AS&lt;/span> Item,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>COLUMN_GET(attributes, &lt;span style="color:#e6db74">&amp;#39;colour&amp;#39;&lt;/span> &lt;span style="color:#66d9ef">AS&lt;/span> CHAR) &lt;span style="color:#66d9ef">AS&lt;/span> Colour
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">FROM&lt;/span> items;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="postgresql">PostgreSQL&lt;/h2>
+&lt;p>支持JSON数据类型，相比普通&lt;code>text&lt;/code>文本字段类型，JSON数据类型强制要求列中每个存储的值都符合JSON格式规则。&lt;/p></description></item><item><title>多租户</title><link>http://www.redscarf.me/multi-tenant/</link><pubDate>Mon, 24 Jul 2023 19:30:32 +1000</pubDate><guid>http://www.redscarf.me/multi-tenant/</guid><description>&lt;h1 id="多租户软件架构概述">多租户软件架构概述&lt;/h1>
+&lt;h2 id="多租户软件架构简介">多租户软件架构简介&lt;/h2>
+&lt;p>在多租户软件架构中，一个应用程序实例及其底层的数据库和硬件资源服务于多个租户（或用户账户）。一个租户可以是单个用户，但更常见的是一组用户，例如一个客户组织，他们共享同一个应用程序实例。每个租户的数据与其他租户的数据相互隔离，彼此不可见，从而确保所有租户的数据安全和隐私。&lt;/p>
+&lt;h2 id="多租户架构的优势">多租户架构的优势&lt;/h2>
+&lt;h3 id="1-低成本">1. 低成本&lt;/h3>
+&lt;ul>
+&lt;li>&lt;strong>成本效益&lt;/strong>：软件提供商可以通过单一应用程序实例和基础设施为多个租户提供服务，租户共同分担软件维护、基础设施和数据中心运营的成本，因此持续成本通常低于单租户安排。SaaS软件通常以可预测的月度或年度订阅价格提供，价格基于用户数量、使用级别或应用程序中管理的数据量。&lt;/li>
+&lt;/ul>
+&lt;h3 id="2-可伸缩性">2. 可伸缩性&lt;/h3>
+&lt;ul>
+&lt;li>&lt;strong>按需扩展&lt;/strong>：租户可以根据需求进行扩展，新用户可以访问相同的应用程序实例，通常只需增加相应的订阅费用。&lt;/li>
+&lt;/ul>
+&lt;h3 id="3-无代码定制化">3. 无代码定制化&lt;/h3>
+&lt;ul>
+&lt;li>&lt;strong>高度可配置&lt;/strong>：SaaS多租户产品具有高度可配置性，每个租户客户无需昂贵、耗时且有时风险较高的定制开发，即可根据其特定业务需求定制应用程序。&lt;/li>
+&lt;/ul>
+&lt;h3 id="4-持续更新与维护">4. 持续更新与维护&lt;/h3>
+&lt;ul>
+&lt;li>&lt;strong>持续更新&lt;/strong>：多租户软件提供商负责更新和补丁。新功能添加或修复应用无需客户参与，且只需更新一次（与单租户架构不同，提供商必须更新每个软件实例）。&lt;/li>
+&lt;/ul>
+&lt;h3 id="5-提高生产率">5. 提高生产率&lt;/h3>
+&lt;ul>
+&lt;li>&lt;strong>专注核心业务&lt;/strong>：租户无需管理基础设施或软件，可以专注于更重要的任务，从而提高生产率。&lt;/li>
+&lt;/ul>
+&lt;h2 id="多租户实现方式">多租户实现方式&lt;/h2>
+&lt;h3 id="red-hat-多租户实现">Red Hat 多租户实现&lt;/h3>
+&lt;p>Red Hat 使用以下三种方式实现多租户：&lt;/p>
+&lt;h4 id="1-应用层多租户">1. 应用层多租户&lt;/h4>
+&lt;ul>
+&lt;li>&lt;strong>应用层多租户&lt;/strong>：在应用程序级别实现多租户，通过逻辑隔离不同租户的数据和资源。&lt;/li>
+&lt;/ul>
+&lt;h4 id="2-使用命名空间">2. 使用命名空间&lt;/h4>
+&lt;ul>
+&lt;li>&lt;strong>命名空间&lt;/strong>：命名空间将全局系统资源封装在一个抽象中，使其在命名空间内的进程看来，它们拥有全局资源的独立实例。对全局资源的更改对命名空间内的其他进程可见，但对其他进程不可见。命名空间的一个用途是实现容器。&lt;/li>
+&lt;/ul>
+&lt;h4 id="3-集群层多租户">3. 集群层多租户&lt;/h4>
+&lt;ul>
+&lt;li>&lt;strong>集群层多租户&lt;/strong>：在集群级别实现多租户，通过物理隔离不同租户的资源和数据。&lt;/li>
+&lt;/ul>
+&lt;h3 id="linux-命名空间">Linux 命名空间&lt;/h3>
+&lt;p>Linux 命名空间是一种操作系统层级的资源隔离技术，能够将 Linux 的全局资源划分为命名空间范围内的资源，不同命名空间间的资源彼此透明，不同命名空间里的进程无法感知到其他命名空间里面的进程和资源。Linux 命名空间实现了 6 项资源隔离，涵盖了一个小型操作系统的运行要素，包括主机名、用户权限、文件系统、网络、进程号、进程间通信。Linux 命名空间是操作系统虚拟化技术（如容器）的底层实现支撑。&lt;/p>
+&lt;p>&lt;a href="https://developers.redhat.com/articles/2022/05/09/approaches-implementing-multi-tenancy-saas-applications#using_application_logic_to_provide_multi_tenancy">Approaches to implementing multi-tenancy in SaaS applications&lt;/a>
+&lt;a href="https://man7.org/linux/man-pages/man7/namespaces.7.html">linux namespace&lt;/a>&lt;/p></description></item><item><title>Prompt 框架模版</title><link>http://www.redscarf.me/prompt-template/</link><pubDate>Sun, 09 Jul 2023 21:30:32 +1000</pubDate><guid>http://www.redscarf.me/prompt-template/</guid><description>&lt;h3 id="crispe">Crispe&lt;/h3>
+&lt;p>&lt;a href="https://link.juejin.cn/?target=https%3A%2F%2Fgithub.com%2Fmattnigh%2FChatGPT3-Free-Prompt-List">Matt Nigh&lt;/a> 的 CRISPE Framework，比较适合用于编写 prompt 模板。CRISPE 分别代表以下含义：&lt;/p>
+&lt;p>CR: Capacity and Role（能力与角色）。你希望 ChatGPT 扮演怎样的角色。&lt;/p>
+&lt;p>I:Insight（洞察力），背景信息和上下文（坦率的说我觉得用Context 更好）。&lt;/p>
+&lt;p>S： Statement（指令），你希望 ChatGPT 做什么。&lt;/p>
+&lt;p>P：Personality（个性），你希望 ChatGPT 以什么风格或方式回答你。&lt;/p>
+&lt;p>E：Experiment（尝试），要求 ChatGPT 为你提供多个答案。&lt;/p>
+&lt;p>以下是这几个参数的例子：&lt;/p>
+&lt;table>
+ &lt;thead>
+ &lt;tr>
+ &lt;th>Step&lt;/th>
+ &lt;th>Example&lt;/th>
+ &lt;/tr>
+ &lt;/thead>
+ &lt;tbody>
+ &lt;tr>
+ &lt;td>Capacity and Role&lt;/td>
+ &lt;td>Act as an expert on software development on the topic of machine learning frameworks, and an expert blog writer. 把你想象成机器学习框架主题的软件开发专家，以及专业博客作者。&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>Insight&lt;/td>
+ &lt;td>The audience for this blog is technical professionals who are interested in learning about the latest advancements in machine learning. 这个博客的读者主要是有兴趣了解机器学习最新进展技术的专业人士。&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>Statement&lt;/td>
+ &lt;td>Provide a comprehensive overview of the most popular machine learning frameworks, including their strengths and weaknesses. Include real-life examples and case studies to illustrate how these frameworks have been successfully used in various industries. 提供最流行的机器学习框架的全面概述，包括它们的优点和缺点。包括现实生活中的例子，和研究案例，以说明这些框架如何在各个行业中成功地被使用。&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>Personality&lt;/td>
+ &lt;td>When responding, use a mix of the writing styles of Andrej Karpathy, Francois Chollet, Jeremy Howard, and Yann LeCun. 在回应时，混合使用 Andrej Karpathy、Francois Chollet、Jeremy Howard 和 Yann LeCun 的写作风格。&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>Experiment&lt;/td>
+ &lt;td>Give me multiple different examples. 给我多个不同的例子。&lt;/td>
+ &lt;/tr>
+ &lt;/tbody>
+&lt;/table>
+&lt;p>将所有的元素都组合在一起，就变成了这样的 prompt，对比基础 prompt 生成的结果会非常不一样。&lt;/p></description></item><item><title>Kafka 总结</title><link>http://www.redscarf.me/kafka-1/</link><pubDate>Thu, 27 Jan 2022 20:56:50 +1000</pubDate><guid>http://www.redscarf.me/kafka-1/</guid><description>&lt;h3 id="consumer-是推还是拉">consumer 是推还是拉？&lt;/h3>
+&lt;p>&lt;a href="https://kafka.apache.org/documentation/#design_pull">https://kafka.apache.org/documentation/#design_pull&lt;/a>
+kafka 生产者端生成消息推送（push）到 broker，消费者端从 broker 拉取（pull）消息。&lt;/p>
+&lt;p>&lt;strong>统一采用 pull 的方式？&lt;/strong>
+boker 从生产者 pull 消息。在生产者数量庞大的场景下，broker 需要管理维护很多的关系，简直是梦魇。所以采用的是生产者往 broker push 消息。&lt;/p>
+&lt;p>&lt;strong>统一采用 push 的方式？&lt;/strong>
+broker 往 consumer push 消息。在 consumer 多样化的场景下，如果生产者的生产速率远远大于消费者，broker 控制不好，push 会造成 consumer 不堪重负。反之，由 consumer 根据自身处理速率来决定何时从 broker 拉取消息，会更好。采用 pull 的弊端在于，如果 broker 没有消息，那么就会空转，这可以通过在调用 poll 接口时传入等待时间阻塞或者传入批次数据包大小来等待阻塞。&lt;/p>
+&lt;h3 id="kafka-的-ack-机制">kafka 的 ack 机制&lt;/h3>
+&lt;p>客户端连接到 leader broker 上，发送消息之后，等待或不等待 leader broker 的 ack（是否等待取决于参数&lt;code>request.required.acks&lt;/code> 配置）。比如：
+客户端设置 &lt;code>acks=0&lt;/code>，客户端不作任何等待，即使消息没有写入 kafka 集群。
+客户端设置 &lt;code>acks=1&lt;/code>，客户端会等待 Leader 副本成功写入后返回的确认，但如果 Leader 副本在消息被同步到其他副本之前崩溃，消息可能会丢失。
+客户端设置 &lt;code>acks=all&lt;/code> 或 &lt;code>acks=-1&lt;/code>参数，leader 在接收到客户端的消息之后，先写入日志文件，然后往同步副本（ISR）发送数据，等所有的 follower 都确认消息写入成功后，leader 再给客户端发送 ack 确认。&lt;/p></description></item><item><title>博客搬新家了！！！</title><link>http://www.redscarf.me/hugo_newbie/</link><pubDate>Sat, 03 Jul 2021 00:06:32 +1000</pubDate><guid>http://www.redscarf.me/hugo_newbie/</guid><description>&lt;p>将博客生成器从原来的 Hexo 换成了 &lt;a href="https://gohugo.io">Hugo&lt;/a>。&lt;/p>
+&lt;p>&lt;strong>特别感谢闫博推荐 Hugo 这个静态网站生成器并提供 &lt;a href="https://www.yanboyang.com/hugo/">技术支持&lt;/a>！&lt;/strong>&lt;/p></description></item><item><title>Docker 使用</title><link>http://www.redscarf.me/docker-base-use/</link><pubDate>Tue, 07 Jul 2020 22:15:32 +1000</pubDate><guid>http://www.redscarf.me/docker-base-use/</guid><description>&lt;p>通过 Docker 命令行工具与 Docker Daemon 进程通讯使用。&lt;/p>
+&lt;h2 id="使用步骤">使用步骤&lt;/h2>
+&lt;ol>
+&lt;li>&lt;strong>安装 Docker 到宿主机（物理机）&lt;/strong>&lt;/li>
+&lt;li>&lt;strong>到仓库拉取镜像&lt;/strong>&lt;br>
+&lt;a href="https://hub.docker.com">https://hub.docker.com&lt;/a>&lt;/li>
+&lt;li>&lt;strong>运行镜像产生容器（实例，一个镜像可以运行多个）&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;h2 id="镜像操作">镜像操作&lt;/h2>
+&lt;h3 id="搜索镜像">搜索镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker search imageName
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="拉取镜像">拉取镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker pull imageName:tag
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
+&lt;li>&lt;code>tag&lt;/code> 版本号，如不指定默认是 &lt;code>latest&lt;/code>&lt;/li>
+&lt;/ul>
+&lt;h3 id="查看本地镜像">查看本地镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker images
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="删除镜像">删除镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker rmi imageID
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker rmi &lt;span style="color:#f92672">[&lt;/span>repositoryname&lt;span style="color:#f92672">]&lt;/span>:&lt;span style="color:#f92672">[&lt;/span>tag&lt;span style="color:#f92672">]&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="删除所有未加标签的镜像untagged">删除所有未加标签的镜像(untagged)&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker rmi &lt;span style="color:#66d9ef">$(&lt;/span>docker images | grep &lt;span style="color:#e6db74">&amp;#34;^&amp;lt;none&amp;gt;&amp;#34;&lt;/span> | awk &lt;span style="color:#e6db74">&amp;#34;{print &lt;/span>$3&lt;span style="color:#e6db74">}&amp;#34;&lt;/span>&lt;span style="color:#66d9ef">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="重命名镜像">重命名镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker tag imageId imageName:tag
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="通过本地-dockerfile-文件编译镜像文件">通过本地 Dockerfile 文件编译镜像文件&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker build -t mop:latest - &amp;lt; mopDockerfile
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="容器操作">容器操作&lt;/h2>
+&lt;h3 id="进入容器">进入容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>sudo docker exec -it ubuntu bash
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>docker exec -it ardupilot bash
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="查看容器">查看容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker ps -a
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ul>
+&lt;li>&lt;code>-a&lt;/code>：所有容器，包括停止的&lt;/li>
+&lt;li>&lt;code>-q&lt;/code>：查看停止的容器，不加选项默认查看运行中的容器&lt;/li>
+&lt;/ul>
+&lt;h3 id="保存容器">保存容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>sudo docker save ubuntu &amp;gt; ubuntu_save.tar
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="合并多个容器为一个文件">合并多个容器为一个文件&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>sudo docker save -o images.tar postgres:9.0 mongo:3.4
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="导出容器或镜像">导出容器或镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>sudo docker export ubuntu &amp;gt; ubuntu_export.tar
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="加载容器">加载容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>sudo docker load &amp;lt; ubuntu_save.tar
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="导入容器">导入容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>cat ubuntu_export.tar | sudo docker import - ubuntu:18.04
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="启动或停止容器">启动或停止容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker start/stop container-name/container-id
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="容器日志">容器日志&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker logs container-name/container-id
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker logs -f -t --since&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#e6db74">&amp;#34;2020-10-20&amp;#34;&lt;/span> --tail&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">10&lt;/span> container-name/container-id
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker logs &lt;span style="color:#f92672">[&lt;/span>OPTIONS&lt;span style="color:#f92672">]&lt;/span> CONTAINER
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>Options:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> --details 显示更多的信息
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> -f, --follow 实时输出日志，最后一行为当前时间戳的日志
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> --since string 输出日志开始日期，即只输出指定日期之后的日志。
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> --tail string 显示最后多少行日志，默认是all
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> （如： -tail&lt;span style="color:#f92672">=&lt;/span>&lt;span style="color:#ae81ff">10&lt;/span> : 查看最后的 &lt;span style="color:#ae81ff">10&lt;/span> 行日志。） 
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> -t, --timestamps 显示时间戳
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="镜像重命名">镜像重命名&lt;/h3>
+&lt;ul>
+&lt;li>&lt;code>docker import&lt;/code> 可以&lt;/li>
+&lt;li>&lt;code>docker load&lt;/code> 不可以&lt;/li>
+&lt;/ul>
+&lt;h3 id="将多个镜像打包到一个文件中">将多个镜像打包到一个文件中&lt;/h3>
+&lt;ul>
+&lt;li>&lt;code>docker export&lt;/code> 不支持&lt;/li>
+&lt;li>&lt;code>docker save&lt;/code> 支持&lt;/li>
+&lt;/ul>
+&lt;h3 id="删除容器">删除容器&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker rm containerid
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="删除所有已停止运行的容器stopped">删除所有已停止运行的容器(stopped)&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker rm &lt;span style="color:#66d9ef">$(&lt;/span>docker ps -a -q&lt;span style="color:#66d9ef">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="查看容器信息">查看容器信息&lt;/h3>
+&lt;h4 id="宿主机上">宿主机上&lt;/h4>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker inspect containerId
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="容器内部">容器内部&lt;/h4>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>ps -fe
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="运行">运行&lt;/h2>
+&lt;h3 id="运行镜像">运行镜像&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker run --name container-name -d imageName
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-bash" data-lang="bash">&lt;span style="display:flex;">&lt;span>docker run -itd --name myubuntu ubuntu:latest /bin/bash
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;blockquote>
+&lt;p>注意查看官方文档推荐的启动实例，指定一些初始化的配置参数，否则可能初始化失败直接退出。例如 MySQL 官方示例，挂载本地配置文件到 Docker 容器内部。&lt;/p></description></item><item><title>Lombok</title><link>http://www.redscarf.me/lombok/</link><pubDate>Thu, 30 Apr 2020 19:10:32 +0100</pubDate><guid>http://www.redscarf.me/lombok/</guid><description>&lt;h2 id="介绍">介绍&lt;/h2>
+&lt;p>&lt;code>Lombok&lt;/code> 是提升 Java 编码效率常用的工具，借助它开发人员可以使用注解来自动生成一些模版代码。比如 &lt;code>getter&lt;/code>、&lt;code>setter&lt;/code>、&lt;code>equals&lt;/code>、&lt;code>toString&lt;/code> 等方法。&lt;/p>
+&lt;h2 id="安装">安装&lt;/h2>
+&lt;h3 id="在-maven-中添加依赖">在 maven 中添加依赖&lt;/h3>
+&lt;pre tabindex="0">&lt;code>&amp;lt;dependency&amp;gt;
+ &amp;lt;groupId&amp;gt;org.projectlombok&amp;lt;/groupId&amp;gt;
+ &amp;lt;artifactId&amp;gt;lombok&amp;lt;/artifactId&amp;gt;
+ &amp;lt;version&amp;gt;1.18.4&amp;lt;/version&amp;gt;
+ &amp;lt;scope&amp;gt;provided&amp;lt;/scope&amp;gt;
+&amp;lt;/dependency&amp;gt;
+&lt;/code>&lt;/pre>&lt;h3 id="在编辑器中添加插件">在编辑器中添加插件&lt;/h3>
+&lt;p>如：Intellij Idea，在 setting 的 plugin 里搜索lombok plugin，安装插件&lt;/p>
+&lt;h2 id="使用">使用&lt;/h2>
+&lt;p>&lt;strong>常用的几个注解&lt;/strong>&lt;/p>
+&lt;p>@Data ：注在类上，自动生成类的 get、set、equals、hashCode、canEqual、toString 方法&lt;/p>
+&lt;p>@AllArgsConstructor ：注在类上，自动生成类的全参构造方法&lt;/p>
+&lt;p>@NoArgsConstructor ：注在类上，自动生成类的无参构造&lt;/p>
+&lt;p>@Setter ：注在属性上，自动生成 set 方法&lt;/p>
+&lt;p>@Getter ：注在属性上，自动生成 get 方法&lt;/p>
+&lt;p>@EqualsAndHashCode ：注在类上，自动生成对应的 equals 和 hashCode 方法&lt;/p>
+&lt;p>@Log4j/@Slf4j ：注在类上，自动生成对应的 Logger 对象，变量名为 log&lt;/p>
+&lt;p>@Cleanup(&amp;ldquo;close&amp;rdquo;)：注在本地变量上，自动释放资源（如：关闭 InputStream）&lt;/p>
+&lt;p>@Synchronized：注在方法上，自动生成一个私有锁变量&lt;/p>
+&lt;p>@SneakyThrows：自动生成异常处理语句&lt;/p>
+&lt;blockquote>
+&lt;p>&lt;strong>注意继承关系中使用 Lombok&lt;/strong> &lt;code>@EqualsAndHashCode&lt;/code> 与 &lt;code>@ToString&lt;/code> 注解默认情况下忽略父类的成员变量。譬如打印时 &lt;code>toString&lt;/code> 返回的结果中缺少父类的成员变量，解决办法是在注解中设置 &lt;code>callSuper&lt;/code> 属性为 &lt;code>true&lt;/code>， &lt;code>@ToString(callSuper = true)&lt;/code> 、&lt;code>@EqualsAndHashCode(callsuper = true)&lt;/code>。&lt;/p></description></item><item><title>Json Web Token</title><link>http://www.redscarf.me/jwt/</link><pubDate>Wed, 09 Oct 2019 22:15:32 +1000</pubDate><guid>http://www.redscarf.me/jwt/</guid><description/></item><item><title>WebViewJavascriptBridge 源码剖析</title><link>http://www.redscarf.me/ios-wvjb-sc-analyse/</link><pubDate>Thu, 20 Dec 2018 22:21:48 +1000</pubDate><guid>http://www.redscarf.me/ios-wvjb-sc-analyse/</guid><description>&lt;p>&lt;strong>WebViewJavascriptBridge&lt;/strong> 是一个可以让 OC 与 JS 进行交互通信的第三方开源库。相比其他热门的第三方库，WebViewJavascriptBridge 代码量比较少，并且设计优雅巧妙，可以说是 “小而美”。&lt;/p>
+&lt;p>WebViewJavascriptBridge 库在 OC 端和 JS 端都有对等的逻辑实现，事先注册 handler，内部维护一个消息队列。透明的 &lt;code>iframe&lt;/code> HTML 元素和 webview 的 &lt;code>stringByEvaluatingJavaScriptFromString&lt;/code> 是通信的关键。OC 端发消息给 JS 端比较直观，调起 &lt;code>stringByEvaluatingJavaScriptFromString&lt;/code> 执行脚本传入消息即可。JS 端发消息给 OC 端，需要事先把消息存到队列中，然后借助 iframe 发起一个伪请求，伪请求会被 webview 的代理方法拦截下来，OC 端因此得知 JS 端消息队列中有消息，最后调起 &lt;code>stringByEvaluatingJavaScriptFromString&lt;/code> 方法解析 JS 方法拿到队列中的消息并处理。交互流程见下图：&lt;/p>
+&lt;p>&lt;img src="https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297150/web/webviewjsbridge_z8kdpc.jpg" alt="wbjb-sc-analyse-001">&lt;/p>
+&lt;p>整个库只有以下几个文件：&lt;/p>
+&lt;pre tabindex="0">&lt;code>WebViewJavascriptBridge.h
+WebViewJavascriptBridge.m
+WKWebViewJavascriptBridge.h 
+WKWebViewJavascriptBridge.m
+WebViewJavascriptBridgeBase.h
+WebViewJavascriptBridgeBase.m
+WebViewJavascriptBridge_JS.h
+WebViewJavascriptBridge_JS.m
+&lt;/code>&lt;/pre>&lt;p>一般使用只需要关注 &lt;code>WebViewJavascriptBridge&lt;/code> 类提供的接口，这个类的主要职责是用来做 Mac 和 iOS webview 的适配（包括 WKWebView，但是这部分代理出去给 WKWebViewJavaScriptBridge 类）并为客户端提供便利的使用接口。&lt;code>WebViewJavascriptBridgeBase&lt;/code> 类负责有关数据加工、消息队列管理、消息派发及回调的处理工作。&lt;code>WebViewJavascriptBridge_JS&lt;/code> 类包含 JS 端的实现代码，通过宏处理返回 JS 端实现代码的一个 OC 字符串，便于在适当时机将其注入到文档模型中完成 bridge 的初始化。&lt;/p></description></item><item><title>iOS 远程打包脚本制作</title><link>http://www.redscarf.me/ios-remote-pack/</link><pubDate>Mon, 23 Jul 2018 20:00:50 +1000</pubDate><guid>http://www.redscarf.me/ios-remote-pack/</guid><description>&lt;p>在 iOS 开发中，一般打发布包都是在本地打包，也就是工程师在自己开发电脑上使用 Xcode 编译并导出安装包来进行发布，为了提高效率可能会制作一些自动化打包脚本。本文聊的是远程打包的内容，通过资源拷贝及参数替换然后编译完成打包。&lt;/p>
+&lt;p>由于 HTML5 跨平台的特点，很多技术团队考虑到代码复用，在部分模块中会采用 h5 来描述界面。甚至有些不需要太复杂交互的 app，全部界面采用 h5 来编写，也就是一个 web 工程。对于大部分现有的 web 工程，能打包成 app 就已经满足了业务诉求。DCloud 团队开发的 HBuilder（IDE）工具中提供了云打包的功能，用起来很方便，简单的说，就是把 web 工程上传到云打包服务器，最后打包生成 app，点击下载即可安装使用。&lt;/p>
+&lt;p>&lt;img src="https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297147/web/dcloud-pack-param_atnmdu.png" alt="dcloud-pack-param">&lt;/p>
+&lt;p>虽然云打包服务很方便，但上传源码总感觉不太妥当，总有些秘密不想让别人看见，并且其他同事也有打包的需求，但不一定会使用 HBuilder。因此，搭建一个自己的打包服务很有必要。&lt;/p>
+&lt;p>按照 HBuilder 提供的云打包功能，先定一个初步的需求：&lt;/p>
+&lt;ul>
+&lt;li>支持修改应用 id、版本号 、icon、启动图&lt;/li>
+&lt;li>支持导入签名文件&lt;/li>
+&lt;/ul>
+&lt;p>开工！！！&lt;/p>
+&lt;h2 id="准备工作">准备工作&lt;/h2>
+&lt;p>首先，需要一台安装了 MacOS 的电脑（当做服务器使用）。&lt;/p>
+&lt;p>笔者手头上刚好有台闲置的电脑就拿来当服务器使用了，装了 WMWare，然后装了 MacOS 虚拟机（问题较多，不建议使用虚拟机）。&lt;/p>
+&lt;blockquote>
+&lt;p>物理机 windows7，内存 4G；虚拟机 MacOS，内存 3G。&lt;/p>
+&lt;/blockquote>
+&lt;p>其次，在服务器上部署一个 web 服务，提供打包交互界面方便客户端上传资源文件及下载安装包。我们的界面只提供了一个 &lt;code>www&lt;/code> zip 包的上传入口，所有应用资源及打包相关的配置文件都在里面。www 目录结构如下：&lt;/p>
+&lt;p>&lt;img src="https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297146/web/paf-www-dir_aabjio.png" alt="paf-www-dir">&lt;/p>
+&lt;h3 id="appconfigjson-文件内容">appConfig.json 文件内容&lt;/h3>
+&lt;pre tabindex="0">&lt;code>{
+	&amp;#34;id&amp;#34;:&amp;#34;com.domain.pack&amp;#34;,
+	&amp;#34;appName&amp;#34;:&amp;#34;我的应用&amp;#34;,
+	&amp;#34;debug&amp;#34;:true,
+	&amp;#34;launchPath&amp;#34;: &amp;#34;index.html&amp;#34;,
+	&amp;#34;version&amp;#34;: {
+		&amp;#34;name&amp;#34;: &amp;#34;1.0.0&amp;#34;,
+		&amp;#34;code&amp;#34;: &amp;#34;100&amp;#34;
+	},
+	...
+}
+&lt;/code>&lt;/pre>&lt;p>&lt;code>launchPath&lt;/code> 对应 web 应用入口文件，iOS 工程使用这个文件路径作为 webview 的加载入口。&lt;/p></description></item><item><title>Android Gradle 注入编译变量</title><link>http://www.redscarf.me/android-gradle-build/</link><pubDate>Sat, 09 Jun 2018 12:36:16 +1000</pubDate><guid>http://www.redscarf.me/android-gradle-build/</guid><description>&lt;p>最近为了制作 Android 应用打包脚本，学习了一下 gradle。Gradle 构建系统语法简洁、功能强大、配置灵活，笔者只是把它当作一个构建工具来使用，基于它所提供的便利制作可以修改版本号、编译号、id 及导入证书的脚本。&lt;/p>
+&lt;p>对于一个项目或者一个工程，Gradle 可以定义多个构建任务，debug 和 release 是常见的两个构建任务，用户还可以根据需要自定义自己的构建任务，如测试构建任务和预发布构建任务，甚至是针对不同发布渠道的构建任务。这里只用到 debug 任务。&lt;/p>
+&lt;p>gradle 命令行支持传入自定义参数，并在编译过程注入这些参数。&lt;/p>
+&lt;h2 id="修改-appid-及-版本号">修改 appid 及 版本号&lt;/h2>
+&lt;h3 id="修改-buildgradle-文件">修改 build.gradle 文件&lt;/h3>
+&lt;pre tabindex="0">&lt;code>android {
+ compileSdkVersion 21
+ buildToolsVersion &amp;#39;26.0.2&amp;#39;
+ defaultConfig {
+ applicationId project.hasProperty(&amp;#39;applicationId&amp;#39;) ? applicationId : &amp;#34;com.domain.myApp&amp;#34;
+ minSdkVersion 14
+ targetSdkVersion 21
+ versionCode project.hasProperty(&amp;#39;versionCode&amp;#39;) ? versionCode.toInteger() : 100
+ versionName project.hasProperty(&amp;#39;versionName&amp;#39;) ? versionName : &amp;#34;1.0.0&amp;#34;
+ testInstrumentationRunner &amp;#34;android.support.test.runner.AndroidJUnitRunner&amp;#34;
+ }
+&lt;/code>&lt;/pre>&lt;h3 id="命令行中传入对应-key-的参数">命令行中传入对应 key 的参数&lt;/h3>
+&lt;pre tabindex="0">&lt;code>gradle assembleDebug -PversionCode=&amp;#34;200&amp;#34; -PversionName=&amp;#34;2.0.0&amp;#34; -PapplicationId=&amp;#34;com.domain.myApp.debug&amp;#34;
+&lt;/code>&lt;/pre>&lt;p>修改应用 id 的最好同时修改包名，不然会有包名冲突，修改包名需要修改 &lt;code>AndroidManifest.xml&lt;/code> 文件，先在 &lt;code>build.gradle&lt;/code> 文件中使用 &lt;code>manifestPlaceholders &lt;/code> 属性定义一个键：&lt;/p></description></item><item><title>Core Bluetooth Programming Guide 译文</title><link>http://www.redscarf.me/ios-core-bluetooth-programming-guide/</link><pubDate>Mon, 26 Mar 2018 19:09:15 +1000</pubDate><guid>http://www.redscarf.me/ios-core-bluetooth-programming-guide/</guid><description>&lt;h1 id="介绍">介绍&lt;/h1>
+&lt;h2 id="关于-core-bluetooth">关于 Core Bluetooth&lt;/h2>
+&lt;p>Core Bluetooth 框架提供 iOS 应用和 Mac 应用与设备（配备了蓝牙低能耗无线技术的设备）通信的类。例如，应用可以发现、探测并与低能耗外围设备（比如心率监听器和数字恒温器）交互。从 macOS 10.9 和 iOS 6 开始，Mac 和 iOS 设备还可以当做蓝牙低能耗外设来使用，为其它设备提供数据，包括其他 Mac 和 iOS 设备。&lt;/p>
+&lt;p>&lt;img src="https://developer.apple.com/library/content/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/Art/CBTechnologyFramework_2x.png" alt="core_bluetooth_architecture">&lt;/p>
+&lt;h2 id="一览">一览&lt;/h2>
+&lt;p>蓝牙低能耗无线技术基于蓝牙 4.0 规范，规范中除了别的之外，定义了与低能耗设备通信的一套协议。Core Bluetooth 框架是蓝牙低能耗协议栈的一个抽象，也就是说，它为开发者隐藏了许多规范中的底层细节，让开发者更加容易开发应用（与蓝牙低能耗设备交互的应用）。&lt;/p>
+&lt;h3 id="中央和外围是-core-bluetooth-的核心成员">中央和外围是 Core Bluetooth 的核心成员&lt;/h3>
+&lt;p>在蓝牙低能耗通信中，有两个核心成员：中央（central）和外围（peripheral）。每个成员扮演不同的角色。外围通常拥有其他设备需要的数据，中央通常使用外围提供的信息来完成一些任务。例如，一个配备了蓝牙低能耗技术的数字恒温器可能为一个 iOS 应用提供房间的温度信息，然后该应用采用用户友好的方式来显示温度。&lt;/p>
+&lt;p>每个成员在扮演它的角色时都会执行一组不同的任务。外围通过在空中广播持有的数据来让自身的存在被感知，中央设备扫描附近的外围设备（可能包含中央设备感兴趣的数据）。当中央设备发现外围设备，中央设备就请求与外围设备连接并开始探测和交互外围设备的数据。外围设备负责以适当的方式来响应中央设备。&lt;/p>
+&lt;blockquote>
+&lt;p>相关章节：&lt;a href="https://developer.apple.com/library/content/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothOverview/CoreBluetoothOverview.html#//apple_ref/doc/uid/TP40013257-CH2-SW1">Core Bluetooth Overview&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h3 id="core-bluetooth-简化了一般的蓝牙任务">Core Bluetooth 简化了一般的蓝牙任务&lt;/h3>
+&lt;p>Core Bluetooth 框架抽离了蓝牙 4.0 规范中的底层细节。因此，应用中需要实现的一般蓝牙低能耗任务被简化了。如果开发实现中央角色的应用，Core Bluetooth 使得发现、连接外围设备和探测、交互外围数据变得简单。另外，Core Bluetooth 还让本地设备实现外围角色变得简单。&lt;/p>
+&lt;blockquote>
+&lt;p>相关章节：&lt;a href="https://developer.apple.com/library/content/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/PerformingCommonCentralRoleTasks/PerformingCommonCentralRoleTasks.html#//apple_ref/doc/uid/TP40013257-CH3-SW1">Performing Commmon Central Role Tasks&lt;/a>,&lt;a href="https://developer.apple.com/library/content/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/PerformingCommonPeripheralRoleTasks/PerformingCommonPeripheralRoleTasks.html#//apple_ref/doc/uid/TP40013257-CH4-SW1">Performing Common Peripheral Role Tasks&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h3 id="ios-应用的状态影响蓝牙的表现">iOS 应用的状态影响蓝牙的表现&lt;/h3>
+&lt;p>当应用处于后台或挂起状态时，蓝牙相关的特性会受到影响。在这两种状态下，默认是应用无法执行蓝牙低能耗任务。也就是说，如果应用需要在后台执行蓝牙低能耗任务，可以声明支持 Core Bluetooth 后台运行模式中的一个或两个（一个属于中央角色，另一个属于外围角色）。即使在你指定了一个后台运行模式或两个都指定，当应用处于后台时，某些蓝牙任务的执行依然会有所不同，设计应用时，需要考虑到这些差异。&lt;/p>
+&lt;p>即使应用支持后台处理，应用仍然可能在任意时刻被系统终止以清空内存给当前前台应用使用。在 iOS 7之后，Core Bluetooth 支持保存中央和外围管理者对象的状态信息并在应用启动的时候恢复该状态，可以使用这个特性来支持涉及蓝牙设备的长期活动（long-term actions）。&lt;/p></description></item><item><title>Difference between authentication, authorization,verification, validation</title><link>http://www.redscarf.me/terminology-confusion/</link><pubDate>Tue, 12 Dec 2017 21:41:34 +1000</pubDate><guid>http://www.redscarf.me/terminology-confusion/</guid><description>&lt;p>&lt;code>verification&lt;/code>, &lt;code>validation&lt;/code>, &lt;code>authentication&lt;/code>, &lt;code>authorization&lt;/code> 这几个术语很常用，也经常被误用，这里做一次对比总结。&lt;/p>
+&lt;p>&lt;strong>identity&lt;/strong>&lt;/p>
+&lt;blockquote>
+&lt;p>A security principal (you or a computer, typically) wants to access a system. Because the system doesn’t know you yet, you need to make a declaration of who you are. Your answer to the question “Who are you” is the first thing you present to a system when you want to use it. Some common examples of identity are user IDs, digital certificates (which include public keys), and ATM cards. A notable characteristic of identity is that it is public, and it has to be this way: identity is your claim about yourself, and you make that claim using something that’s publicly available.&lt;/p></description></item><item><title>Local and Remote Notification Programming Guide 译文</title><link>http://www.redscarf.me/ios-local-and-remote-notification-programming-guide/</link><pubDate>Mon, 27 Nov 2017 20:26:21 +1000</pubDate><guid>http://www.redscarf.me/ios-local-and-remote-notification-programming-guide/</guid><description>&lt;p>原文地址：&lt;a href="https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/">本地和远程通知编程指南&lt;/a>&lt;/p>
+&lt;h1 id="应用中的通知">应用中的通知&lt;/h1>
+&lt;h2 id="本地和远程通知概览">本地和远程通知概览&lt;/h2>
+&lt;blockquote>
+&lt;p>重要 &lt;!-- raw HTML omitted -->
+这篇文档包含开发中有关 API 或技术的初步信息，这些信息可能会改变，并且根据这篇文档来实现的软件应当在最终的操作系统软件中进行测试。&lt;/p>
+&lt;/blockquote>
+&lt;p>本地通知和远程通知是在应用有新数据可用时通知用户的两种方式，即使此时应用不在前台运行。例如，短信应用可能会让用户知道有新的短信来了，日历应用可能会通知用户即将到来的约会。本地通知和远程通知的区别很简单：&lt;/p>
+&lt;ul>
+&lt;li>对于本地通知，应用在本地配置通知的细节并把这些细节传给系统，然后由系统来处理通知的传递（当应用不在前台时）。iOS、tvOS、watchOS 都支持本地通知。&lt;/li>
+&lt;li>对于远程通知，使用公司服务器中的一个通过&lt;code>苹果推送通知服务&lt;/code>把数据推送到用户的设备。iOS、tvOS、watchOS、macOS 都支持远程通知。&lt;/li>
+&lt;/ul>
+&lt;p>本地通知和远程通知都需要添加代码来支持应用中的通知的调度和处理。对于远程通知，必须提供一个服务器环境，该环境能够接收来自用户设备的数据和发送通知相关的数据到 &lt;code>苹果推送消息服务&lt;/code> (简称 APNs，由苹果提供的用来处理远程通知传递的服务)。&lt;/p>
+&lt;h3 id="user-notifications-和-user-notifications-ui-框架">User Notifications 和 User Notifications UI 框架&lt;/h3>
+&lt;p>从 iOS 10、watchOS 3、tvOS 10 开始，User Notifications 框架提供一致的方式来和处理本地通知。除了管理本地通知，该框架也支持远程通知的处理，然而远程通知的配置仍然需要一些平台特有的 API。因为这是一个独立的框架，所以可以在应用中或者扩展中使用，比如 WatchKit 扩展。&lt;/p>
+&lt;blockquote>
+&lt;p>注意&lt;!-- raw HTML omitted -->
+macOS 上远程通知的配置和处理需要使用平台特有的方法（在 AppKit 框架中找）&lt;/p>
+&lt;/blockquote>
+&lt;p>User Notifications 框架也支持创建 &lt;em>通知服务应用扩展&lt;/em> (notification service app extension)，它可以让你在远程通知传递之前修改通知的内容。如果在应用中包含通知服务应用扩展，系统会把收到的通知在传递给用户之前先传递给扩展。可以使用这类扩展来给应用的通知实现端到端的加密、在通知传递前修改其内容，又或者下载与通知相关的额外的图片或媒体文件。&lt;/p>
+&lt;p>User Notifications UI 框架是 User Notifications 的配套，它可以让你自定义系统的通知界面的外观。使用User Notifications UI 框架来定义 &lt;em>通知内容应用扩展&lt;/em>(notification content app extension)，它的任务就是提供一个包含自定义内容的视图控制器来显示在通知界面中。系统会显示自定义视图控制器而不是默认的系统界面。可以使用这种扩展在通知界面中加入多媒体或动态内容。&lt;/p></description></item><item><title>《第一行代码》</title><link>http://www.redscarf.me/android-first-line-code-note/</link><pubDate>Sat, 14 Oct 2017 11:59:26 +1000</pubDate><guid>http://www.redscarf.me/android-first-line-code-note/</guid><description>&lt;p>最近为了学习 Android，找从事 Android 开发的朋友推荐些书，最后他推荐了《第一行代码》（第 2 版）和《Android 开发艺术探索》两本书。本文是在阅读了《第一行代码》之后所做的笔记，主要记录 Android 平台上的一些比较有趣的特性以及它和 iOS 的不同之处。&lt;/p>
+&lt;h2 id="android-全貌">Android 全貌&lt;/h2>
+&lt;ul>
+&lt;li>2008 年 9 月，Google 正式发布 Android 1.0 系统&lt;/li>
+&lt;li>2014 年 Google I/O 大会上发布号称史上版本改动最大的 Android 5.0 系统，这版本使用 ART 运行环境替换 Dalvik 虚拟机，同时推出 Wear、Auto、TV 系统&lt;/li>
+&lt;li>2016 年 Google I/O 大会推出 Android 7.0，加入多窗口模式&lt;/li>
+&lt;/ul>
+&lt;h3 id="android-系统架构">Android 系统架构&lt;/h3>
+&lt;p>Android 系统架构分为四层：Linux 内核层、系统运行库层、应用架构层、应用层。&lt;/p>
+&lt;p>&lt;strong>Linux 内核层&lt;/strong>：主要包含一些硬件的底层驱动。&lt;/p>
+&lt;p>&lt;strong>系统运行库层&lt;/strong>：包含 C/C++ 的底层支持库，例如：支持 3D 绘图的 OpenGL|ES 库、浏览器内核 Webkit 库和 SQLite 数据库支持库。另外还包含 Android 运行时库。&lt;/p>
+&lt;p>&lt;strong>应用架构层&lt;/strong>：包含构建应用程序用到的 API，开发人员主要使用这层提供的 API 来构建应用。&lt;/p>
+&lt;p>&lt;strong>应用层&lt;/strong>：包含手机上安装的应用，联系人、短信等。&lt;/p>
+&lt;p>&lt;img src="https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625292644/Android/Android-System-Architecture_knmkfo.png" alt="Android 系统架构">&lt;/p>
+&lt;p>Android 系统为开发人员提供了：&lt;/p></description></item><item><title>OC 与 JS 通信的几种方式</title><link>http://www.redscarf.me/ios-oc-interact-with-js/</link><pubDate>Fri, 23 Jun 2017 22:57:25 +1000</pubDate><guid>http://www.redscarf.me/ios-oc-interact-with-js/</guid><description>&lt;ol>
+&lt;li>在代理方法中拦截协议&lt;/li>
+&lt;li>使用 JavaScriptCore&lt;/li>
+&lt;li>WKWebView 的 WKScriptMessagehandler&lt;/li>
+&lt;li>使用 NSURLProtocol 拦截请求&lt;/li>
+&lt;li>使用第三方库 WebViewJavascriptBridge&lt;/li>
+&lt;li>使用 WebSocket&lt;/li>
+&lt;/ol>
+&lt;p>这里只介绍第 6 种，其它的相关资料网上有很多。&lt;/p>
+&lt;p>使用 WebSocket 的方式需要在应用内起一个 websocket server 服务（有很多第三方的 websocket server 库），html 页面通过 Websocket 连接到服务，接着就是发送消息了，剩下的就跟代理方法拦截协议类似。&lt;/p>
+&lt;pre tabindex="0">&lt;code>// OC code, 以 PocketSocket 这个库为例
+_socketServer = [PSWebSocketServer serverWithHost:nil port:9001];
+_socketServer.delegate = self;
+_socketServer.delegateQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+[_socketServer start];
+ 
+#pragma mark - PSWebSocketServerDelegate
+- (void)serverDidStart:(PSWebSocketServer *)server 
+{
+ NSLog(@&amp;#34;Server did start…&amp;#34;);
+}
+
+- (void)serverDidStop:(PSWebSocketServer *)server 
+{
+ NSLog(@&amp;#34;Server did stop…&amp;#34;);
+}
+
+- (BOOL)server:(PSWebSocketServer *)server acceptWebSocketWithRequest:(NSURLRequest *)request 
+{
+ NSLog(@&amp;#34;Server should accept request: %@&amp;#34;, request);
+ return YES;
+}
+
+- (void)server:(PSWebSocketServer *)server webSocket:(PSWebSocket *)webSocket didReceiveMessage:(id)message 
+{
+ // 在这里拦截
+ NSLog(@&amp;#34;Server websocket did receive message: %@&amp;#34;, message);
+ NSString *text = message;
+ NSURL *url = [NSURL URLWithString:text];
+ if ([url.scheme isEqualToString:@&amp;#34;camera&amp;#34;]) {
+ ......
+ }
+}
+
+- (void)server:(PSWebSocketServer *)server webSocketDidOpen:(PSWebSocket *)webSocket
+{
+ NSLog(@&amp;#34;Server websocket did open&amp;#34;);
+}
+
+- (void)server:(PSWebSocketServer *)server didFailWithError:(NSError *)error
+{
+ NSLog(@&amp;#34;Server did fail with error: %@&amp;#34;, error);
+}
+
+- (void)server:(PSWebSocketServer *)server webSocket:(PSWebSocket *)webSocket didCloseWithCode:(NSInteger)code reason:(NSString *)reason wasClean:(BOOL)wasClean 
+{
+ NSLog(@&amp;#34;Server websocket did close with code: %@, reason: %@, wasClean: %@&amp;#34;, @(code), reason, @(wasClean));
+}
+
+- (void)server:(PSWebSocketServer *)server webSocket:(PSWebSocket *)webSocket didFailWithError:(NSError *)error 
+{
+ NSLog(@&amp;#34;Server websocket did fail with error: %@&amp;#34;, error);
+}	
+&lt;/code>&lt;/pre>&lt;pre tabindex="0">&lt;code>// JS code 
+var wsServer = &amp;#39;ws://localhost:9001&amp;#39;; 
+var websocket = new WebSocket(wsServer); 
+websocket.onopen = function (evt) { onOpen(evt) }; 
+websocket.onclose = function (evt) { onClose(evt) }; 
+websocket.onmessage = function (evt) { onMessage(evt) }; 
+websocket.onerror = function (evt) { onError(evt) };
+
+function onOpen(evt) { 
+	console.log(&amp;#34;Connected to WebSocket server.&amp;#34;); 
+}
+function onClose(evt) { 
+	console.log(&amp;#34;Disconnected&amp;#34;); 
+} 
+function onMessage(evt) {
+	console.log(&amp;#34;Recieve data: &amp;#34; + evt.data); 
+} 
+function onError(evt) { 
+	console.log(&amp;#39;Error occured: &amp;#39; + evt.data); 
+}
+
+// 发送消息
+websocket.send(&amp;#34;camera://openCamera?index=1&amp;amp;quality=high&amp;amp;callback=callbackFunction);
+function callbackFunction(data){
+	
+}
+&lt;/code>&lt;/pre>&lt;p>参考：&lt;/p></description></item><item><title>第一次成为技术主管易犯的3个常见错误</title><link>http://www.redscarf.me/three-common-mistakes-of-the-first-time-tech-lead/</link><pubDate>Fri, 16 Dec 2016 22:49:16 +1000</pubDate><guid>http://www.redscarf.me/three-common-mistakes-of-the-first-time-tech-lead/</guid><description>&lt;p>译自 &lt;a href="https://www.thoughtworks.com/en-cn/insights/blog/three-common-mistakes-first-time-tech-lead">Three Common Mistakes of the First Time Tech Lead&lt;/a>&lt;/p>
+&lt;p>by Patrick Kua&lt;/p>
+&lt;p>Tech Principal and generalising Specialist&lt;/p>
+&lt;blockquote>
+&lt;p>Don&amp;rsquo;t miss the author&amp;rsquo;s earlier post on the 5 Tips for Being an Effective Tech Lead.&lt;/p>
+&lt;/blockquote>
+&lt;p>别错过作者先前写的关于&lt;a href="https://www.thoughtworks.com/insights/blog/5-tips-being-effective-tech-lead">成为高效技术主管的5个秘诀&lt;/a>。&lt;/p>
+&lt;blockquote>
+&lt;p>The first time a developer steps into the role of a Tech Lead can be difficult. The skills and experience of a seasoned developer do not automatically translate into the skills necessary for the Tech Lead role. In fact, some of the habits of a developer can do more harm than good, when not applied well and with more authority in this new role.&lt;/p></description></item><item><title>HTTPS 单向/双向认证</title><link>http://www.redscarf.me/https-uni-bidirectional-authentication/</link><pubDate>Tue, 08 Nov 2016 20:09:40 +1000</pubDate><guid>http://www.redscarf.me/https-uni-bidirectional-authentication/</guid><description>&lt;h2 id="https">HTTPS&lt;/h2>
+&lt;p>&lt;img src="https://github.com/iCocoa/blog-diagram/raw/main/http.drawio.svg" alt="http&amp;amp;https">&lt;/p>
+&lt;p>HyperText Transfer Protocol，超文本传输协议，是互联网上使用最广泛的一种协议。HTTP协议传输的数据都是未加密的，也就是明文的，不适合用来传输隐私信息。默认 80 端口。&lt;/p>
+&lt;p>Hyper Text Transfer Protocol over Secure Socket Layer，安全的超文本传输协议，网景公式设计了 SSL(Secure Sockets Layer) 协议用于对 Http 协议传输的数据进行加密，保证会话过程中的安全性。默认 443 端口。&lt;/p>
+&lt;p>SSL 包含对称加密和非对称加密，在建立传输链路时，SSL 首先使用非对称加密的方式对对称加密密钥进行加密，建立链路后，使用对称加密的方式对传输内容进行加密。非对称加密有更高的安全性，在这个基础上使用对称加密可以获得更快的速度，提高传输效率。&lt;/p>
+&lt;p>&lt;img src="https://images.ctfassets.net/slt3lc6tev37/34iiS7GovwS9tVEBisLVWb/65b0f7a31632a52ba6047c9d38daff0e/asymmetric-encryption.svg" alt="asymmetric-encryption">&lt;/p>
+&lt;h2 id="单向认证">单向认证&lt;/h2>
+&lt;p>客户端校验服务端证书&lt;/p>
+&lt;p>&lt;img src="https://github.com/iCocoa/blog-diagram/raw/main/unidirectional-authentication.drawio.svg" alt="unidirectional-authentication">&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>&lt;strong>client hello&lt;/strong>
+客户端发起一条到服务端的连接，包含客户端支持的 TLS 版本、支持的加密套件(即加密算法)以及客户端随机数。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>server hello&lt;/strong>
+服务端回应，包含服务端 SSL 证书、选择的加密套件以及服务端随机数。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>authentication&lt;/strong>
+客户端向颁发证书的 CA 验证服务端的 SSL 证书，以确认服务端是它声称的那个身份，从而保证客户端与域名真正的所有者通信。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>send premaster key&lt;/strong>
+客户端发送另一个随机数 “premaster key”，并对它使用服务端的公钥（从服务端 SSL 证书中获取得到）进行加密。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>decrypt premaster key&lt;/strong>
+服务端解密 premaster key&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>create session key&lt;/strong>
+客户端和服务端各自使用客户端随机数、服务端随机数以及 premaster key 来计算 “session key”，即对称加密密钥，两边计算得出同样的结果并各自保留。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;strong>client send finished&lt;/strong>
+客户端使用 session key 加密一条 finished 消息并发送给服务端。&lt;/p></description></item><item><title>iOS Hook WebView 的代理方法</title><link>http://www.redscarf.me/ios-hook-uiwebview-delegate-method/</link><pubDate>Tue, 18 Oct 2016 20:09:01 +1000</pubDate><guid>http://www.redscarf.me/ios-hook-uiwebview-delegate-method/</guid><description>&lt;blockquote>
+&lt;p>国内 DCloud 团队推出的 HTML5+ 技术框架可以用来开发 Hybrid 应用。经过调研，我们决定试一试 。框架的核心原理是使用 iOS 系统原生 UIWebView 和 WKWebView 来加载资源并渲染界面，Native 的能力（如拍照、蓝牙）通过自定义插件来提供。&lt;/p>
+&lt;/blockquote>
+&lt;p>我们的应用有个需求，就是在 webview 加载完页面或者加载页面之前加入一些东西。比如：加载完页面后，根据 HTML 的 title 标签来设置导航栏标题。&lt;/p>
+&lt;p>原生想要插手页面加载周期，只能靠代理方法。但是因为没法修改源码，所以只能找其它办法。主要思路是：使用 Method Swizzle 找出代理对象然后再换掉代理方法实现。&lt;/p>
+&lt;p>以 UIWebView 为例，具体操作如下：&lt;/p>
+&lt;p>&lt;strong>第一步，通过交换 setDelegate 的实现，找到目标代理对象所属的类；&lt;/strong>&lt;/p>
+&lt;pre tabindex="0">&lt;code>UIWebView+Intercepter.m
+
+- (void)p_setDelegate:(id&amp;lt;UIWebViewDelegate&amp;gt;)delegate
+{
+ [self p_setDelegate:delegate];
+ Class delegateClass = [self.delegate class];
+ // 进一步交换 delegateClass 的代理方法
+ [UIWebViewDelegateHook exchangeUIWebViewDelegateMethod:delegateClass];
+}
+
+#pragma mark - Method Swizzling
++ (void)load {
+ static dispatch_once_t onceToken;
+ dispatch_once(&amp;amp;onceToken, ^{
+ Class class = [super class];
+ 
+ // When swizzling a class method, use the following:
+ // Class class = object_getClass((id)self);
+ 
+ SEL originalSelector = @selector(setDelegate:);
+ SEL swizzledSelector = @selector(p_setDelegate:);
+ 
+ Method originalMethod = class_getInstanceMethod(class, originalSelector);
+ Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector);
+ 
+ BOOL didAddMethod =
+ class_addMethod(class,
+ originalSelector,
+ method_getImplementation(swizzledMethod),
+ method_getTypeEncoding(swizzledMethod));
+ 
+ if (didAddMethod) {
+ class_replaceMethod(class,
+ swizzledSelector,
+ method_getImplementation(originalMethod),
+ method_getTypeEncoding(originalMethod));
+ } else {
+ method_exchangeImplementations(originalMethod, swizzledMethod);
+ }
+ 
+ });
+}
+&lt;/code>&lt;/pre>&lt;p>&lt;strong>第二步，把目标代理对象所属类的代理方法实现换成我们自己写的方法实现。&lt;/strong>&lt;/p></description></item><item><title>iOS 10 需要在 info.plist 中添加权限设置</title><link>http://www.redscarf.me/ios-ios10-user-privacy/</link><pubDate>Fri, 07 Oct 2016 22:35:29 +1000</pubDate><guid>http://www.redscarf.me/ios-ios10-user-privacy/</guid><description>&lt;p>iOS 10 开始对隐私权限更加严格, 如需使用隐私权限需要在工程的 &lt;code>info.plist&lt;/code> 文件中声明,如果不声明程序在调用隐私权限（如相机）时应用程序会崩溃。&lt;/p>
+&lt;p>&lt;img src="https://res.cloudinary.com/dtbpgyfsc/image/upload/v1625297000/iOS/ios10-privacy-info-plist_damui3.png" alt="infoPlist">&lt;/p>
+&lt;p>key 可以从下拉列表选择，value 为弹框提示文字（类型 String）&lt;/p>
+&lt;table>
+ &lt;thead>
+ &lt;tr>
+ &lt;th style="text-align: center">权限名称&lt;/th>
+ &lt;th style="text-align: center">Key 值&lt;/th>
+ &lt;/tr>
+ &lt;/thead>
+ &lt;tbody>
+ &lt;tr>
+ &lt;td style="text-align: center">通讯录&lt;/td>
+ &lt;td style="text-align: center">NSContactsUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">麦克风&lt;/td>
+ &lt;td style="text-align: center">NSMicrophoneUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">相册&lt;/td>
+ &lt;td style="text-align: center">NSPhotoLibraryUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">相机&lt;/td>
+ &lt;td style="text-align: center">NSCameraUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">持续获取地理位置&lt;/td>
+ &lt;td style="text-align: center">NSLocationAlwaysUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">使用时获取地理位置&lt;/td>
+ &lt;td style="text-align: center">NSLocationWhenInUseUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">蓝牙&lt;/td>
+ &lt;td style="text-align: center">NSBluetoothPeripheralUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">语音转文字&lt;/td>
+ &lt;td style="text-align: center">NSSpeechRecognitionUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td style="text-align: center">日历&lt;/td>
+ &lt;td style="text-align: center">NSCalendarsUsageDescription&lt;/td>
+ &lt;/tr>
+ &lt;/tbody>
+&lt;/table></description></item><item><title>Grand Central Dispatch</title><link>http://www.redscarf.me/ios-gcd/</link><pubDate>Mon, 05 Jan 2015 20:13:18 +1000</pubDate><guid>http://www.redscarf.me/ios-gcd/</guid><description>&lt;p>&lt;strong>GCD&lt;/strong>（Grand Central Dispatch）是异步执行任务的技术之一。&lt;/p>
+&lt;p>一般将应用程序中记述的线程管理用的代码在系统级中实现。开发者只需要定义想执行的任务并追加到适当的 Dispatch Queue 中，GCD 就能生成必要的线程并计划执行任务。由于线程管理是作为系统的一部分来实现的，因此可统一管理，也可执行任务，这样就比以前的线程更有效率。&lt;/p>
+&lt;pre tabindex="0">&lt;code>dispatch_queue_t queue = dispatch_queue_create(&amp;#34;myQueue&amp;#34;, DISPATCH_QUEUE_CONCURRENT);
+dispatch_async(queue, ^{
+ /**
+ * 长时间处理
+ * 例如：AR用图像识别、数据库访问
+ */
+ 
+ /**
+ * 长时间处理结束，主线程使用该处理结果
+ */
+ 
+ dispatch_async(dispatch_get_main_queue(), ^{
+ /**
+ * 只在主线程可以执行的处理
+ * 例如用户界面刷新
+ */
+ });
+});
+&lt;/code>&lt;/pre>&lt;p>在导入 GCD 之前，Cocoa 框架提供了 NSObject 类的&lt;code>performSelectorInBackground:withObject&lt;/code>实例方法和&lt;code>performSelectorOnMainThread&lt;/code>实例方法等简单的多线程编程技术。&lt;/p>
+&lt;p>&lt;strong>线程&lt;/strong>&lt;/p>
+&lt;pre>&lt;code>线程是程序中一个单一的顺序控制流程。进程内一个相对独立的、可调度的执行单元，是系统独立调度和分派 CPU 的基本单位。在单个程序中同时运行多个线程完成不同的工作，称为多线程。
+“一个 CPU 执行的 CPU 命令列为一条无分叉路径”即为“线程”。
+现在一个物理的 CPU 芯片实际上有64个（64核）CPU，尽管如此，“一个 CPU 执行的 CPU 命令列为一条无分叉路径”仍然不变。
+	
+OS X 和 iOS 的核心 XNU 内核在发生操作系统事件时（如每隔一定时间，唤起系统调用等情况）会切换执行路径。执行中路径的状态，例如CPU的寄存器等信息保存到各自路径专用的内存块中，从切换目标路径专用的内存块中，复原 CPU 寄存器等信息，继续执行切换路径的 CPU 命令列。这称为“上下文切换”。
+由于使用多线程的程序可以在某个线程和其他线程之间反复多次进行上下文切换，因此看上去好像1个 CPU 核能够并列地执行多个线程一样。而且在具有多个 CPU 核的情况下，就不是“看上去像”了，而是真的提供了多个CPU核并行执行多个线程的技术。
+&lt;/code>&lt;/pre>
+&lt;p>&lt;strong>使用多线程容易引发的常见问题&lt;/strong>&lt;/p></description></item><item><title>Auto Layout 知识点梳理</title><link>http://www.redscarf.me/ios-autolayout/</link><pubDate>Wed, 15 Oct 2014 22:29:37 +1000</pubDate><guid>http://www.redscarf.me/ios-autolayout/</guid><description>&lt;p>视图需要有确定的位置与大小才能正确显示在屏幕上。Auto Layout 使用对齐矩阵来确定视图的位置与大小，也就是所谓的约束。我们创建的每一条规则都规定了界面的一部分与另一部分的关系，某一部分可以由另一部分计算得出结果。&lt;/p>
+&lt;p>&lt;code>y = ax + b;&lt;/code> 是一种线性关系。&lt;/p>
+&lt;p>创建约束的常见的方式：&lt;/p>
+&lt;ul>
+&lt;li>Xib&lt;/li>
+&lt;li>NSLayoutConstraint&lt;/li>
+&lt;li>VFS&lt;/li>
+&lt;/ul>
+&lt;p>第一种，可以在(Interface Builder)IB中布局约束，并且根据需求自定义它们。&lt;/p>
+&lt;p>第二种，可以使用代码创建单个约束。NSLayoutConstraint 类提供&lt;code>constraintWithItem:attribute:relatedBy:toItem:attribute:multiplier:contant:&lt;/code>方法，可以让你每次创建一个约束，它将某项的属性关联到另一项。&lt;/p>
+&lt;p>第三种，使用可视化格式语言来表示各项是如何沿着垂直和水平坐标轴布局的。&lt;/p>
+&lt;p>所有约束都是 NSLayoutConstraint 类的成员，无论你是以何种方式创建它们的。每个约束都在一个 Objective—C 对象中存储&lt;code>y = ax + b&lt;/code>规则，并且通过 Auto Layout 引擎来表达该规则。可视化约束 是另一种实现相同效果的工具。&lt;/p></description></item><item><title>ARC</title><link>http://www.redscarf.me/ios-arc/</link><pubDate>Mon, 22 Sep 2014 21:22:25 +1000</pubDate><guid>http://www.redscarf.me/ios-arc/</guid><description>&lt;h2 id="什么是自动引用计数">什么是自动引用计数&lt;/h2>
+&lt;p>自动引用计数（ARC，Automatic Reference Counting）是指内存管理中对引用采取自动计数的技术。要使用 ARC，需要满足以下条件：&lt;/p>
+&lt;ul>
+&lt;li>使用 Xcode4.2 或以上版本&lt;/li>
+&lt;li>使用 LLVM 编译器 3.0 或以上版本&lt;/li>
+&lt;li>编译器选项中设置 ARC 有效&lt;/li>
+&lt;/ul>
+&lt;p>生活例子：办公室开关灯&lt;/p>
+&lt;ol>
+&lt;li>最早进入办公室的人开灯。 count = 1&lt;/li>
+&lt;li>之后进入办公室的人，需要照明。 count = 2&lt;/li>
+&lt;li>下班离开办公室的人，不需要照明。 count = 1&lt;/li>
+&lt;li>最后离开办公室的人关灯。（此时已无人需要照明） count = 0&lt;/li>
+&lt;/ol>
+&lt;h2 id="内存管理">内存管理&lt;/h2>
+&lt;p>思考方式：&lt;/p>
+&lt;ul>
+&lt;li>自己生成的对象，自己持有&lt;/li>
+&lt;li>非自己生成的对象，自己也能持有&lt;/li>
+&lt;li>不再需要自己持有的对象时释放&lt;/li>
+&lt;li>非自己持有的对象无法释放&lt;/li>
+&lt;/ul>
+&lt;p>表 1- 2 对象操作与 Objective-C 方法的对应&lt;/p>
+&lt;table>
+ &lt;thead>
+ &lt;tr>
+ &lt;th>对象操作&lt;/th>
+ &lt;th style="text-align: center">Objective-C方法&lt;/th>
+ &lt;/tr>
+ &lt;/thead>
+ &lt;tbody>
+ &lt;tr>
+ &lt;td>生成并持有对象&lt;/td>
+ &lt;td style="text-align: center">alloc/new/copy/mutableCopy方法&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>持有对象&lt;/td>
+ &lt;td style="text-align: center">retain方法&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>释放对象&lt;/td>
+ &lt;td style="text-align: center">release方法&lt;/td>
+ &lt;/tr>
+ &lt;tr>
+ &lt;td>废弃对象&lt;/td>
+ &lt;td style="text-align: center">dealloc方法&lt;/td>
+ &lt;/tr>
+ &lt;/tbody>
+&lt;/table>
+&lt;p>&lt;strong>区域(zone)&lt;/strong>&lt;/p>
+&lt;p>&lt;code>NSDefaultMallocZone&lt;/code>、&lt;code>NSZoneMalloc&lt;/code> 等名称中包含的&lt;code>NSZone&lt;/code>是什么呢？它是为防止内存碎片化而引入的结构。对内存分配的区域本身进行多重化管理，根据使用对象的目的、对象的大小分配内存，从而提高了内存管理的效率。但是，如同苹果官方文档 Programming With ARC Release Notes 中所说，现在的运行时系统只是简单地忽略了区域的概念。运行时系统中的内存管理本身已极具效率，使用区域来管理内存反而会引起内存使用效率低下以及源代码复杂化问题。&lt;/p>
+&lt;p>&lt;strong>修饰符&lt;/strong>&lt;/p>
+&lt;ul>
+&lt;li>__strong 修饰符&lt;/li>
+&lt;li>__weak 修饰符&lt;/li>
+&lt;li>__unsafe_unretained 修饰符&lt;/li>
+&lt;li>__autoreleasing 修饰符&lt;/li>
+&lt;/ul>
+&lt;p>__unsafe_unretained 修饰符正如其名 unsafe 所示，是不安全的所有权修饰符。尽管 ARC 式的内存管理是编译器的工作，但附有 __unsafe_unretained 修饰符的变量不属于编译器的内存管理对象。同附有 __weak 修饰符的变量一样，因为自己生成并持有的对象不能继续为自己所有，所以生成的对象会立即被释放。&lt;/p></description></item><item><title>iOS Block</title><link>http://www.redscarf.me/ios-blocks/</link><pubDate>Sat, 20 Sep 2014 20:18:23 +1000</pubDate><guid>http://www.redscarf.me/ios-blocks/</guid><description>&lt;p>&lt;code>blocks&lt;/code> 是 C 语言的扩充功能。blocks 是带有自动变量（局部变量）的匿名函数。&lt;/p>
+&lt;h3 id="截获自动变量">截获自动变量&lt;/h3>
+&lt;pre tabindex="0">&lt;code>int main()
+{
+	int dmy = 256;
+	int val = 10;
+	const char *fmt = &amp;#34;val = %d\n&amp;#34;;
+	void (^blk)(void) = ^{
+		printf(fmt,val);
+	};
+	
+	val = 2;
+	fmt = &amp;#34;These value were changed. val = %d\n&amp;#34;;
+	
+	blk();
+	
+	return 0;
+}
+&lt;/code>&lt;/pre>&lt;p>结果：&lt;code>val = 10&lt;/code>&lt;/p>
+&lt;p>分析：block 语法的表达式使用的是它之前声明的自动变量 fmt 和 val。block 表达式截获所使用的自动变量的值为瞬间值。因为 block 表达式保存了自动变量的值（截获），所以在执行 block 语法后，即使改写了 block 中使用的自动变量的值也不会影响 block 执行的结果。&lt;/p>
+&lt;p>需要在 block 中修改一个变量的值，需要使用 __block 说明符。&lt;/p>
+&lt;h3 id="block-的实质">block 的实质&lt;/h3>
+&lt;p>block 实际上是作为极普通的 C 语言源代码来处理的。通过支持 block 的编译器，含有 block 语法的源代码转换为一般 C 语言编译器能够处理的源代码，并作为极为普通的 C 语言代码被编译。&lt;/p></description></item><item><title>Typeof()</title><link>http://www.redscarf.me/c-typeof/</link><pubDate>Sun, 27 Jul 2014 20:56:50 +1000</pubDate><guid>http://www.redscarf.me/c-typeof/</guid><description>&lt;p>看到项目中，有人这样写 &lt;code>__weak __typeof__(self) wself = self;&lt;/code>。我查了一下资料，总结一下。&lt;/p>
+&lt;p>typeof关键字是C语言中的一个新扩展,在linux内核中应用非常广泛。&lt;/p>
+&lt;h3 id="说明">说明&lt;/h3>
+&lt;p>typeof()的参数可以是表达式或一种类型。返回的结果是一种类型。&lt;/p>
+&lt;ul>
+&lt;li>表达式&lt;/li>
+&lt;/ul>
+&lt;p>&lt;code>typeof(x[0](1));&lt;/code>&lt;/p>
+&lt;p>这里假设 x 是一个函数指针数组，这样就可以得到这个函数返回值的类型了。如果将 typeof 用于表达式，则该表达式不会执行。只会得到该表达式的类型。以下示例声明了 int 类型的 var 变量，因为表达式 foo() 是 int 类型的。由于表达式不会被执行，所以不会调用 foo 函数。&lt;/p>
+&lt;pre tabindex="0">&lt;code>extern int foo();
+typeof(foo()) var;
+&lt;/code>&lt;/pre>&lt;ul>
+&lt;li>一种类型&lt;/li>
+&lt;/ul>
+&lt;p>&lt;code>typeof(int *) a,b;&lt;/code> 等价于：&lt;code>int *a,*b;&lt;/code>&lt;/p>
+&lt;h3 id="例子">例子&lt;/h3>
+&lt;ol>
+&lt;li>
+&lt;p>把 y 定义成 x 指向的数据类型：&lt;/p>
+&lt;p>&lt;code>typeof(*x) y;&lt;/code>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>把 y 定义成 x 指向数据类型的数组：&lt;/p>
+&lt;p>&lt;code>typeof(*x) y[4];&lt;/code>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>把 y 定义成一个字符指针数组：&lt;/p>
+&lt;p>&lt;code>typeof(typeof(char *)[4]) y;&lt;/code>&lt;/p>
+&lt;p>这与下面的定义等价：
+&lt;code>char *y[4];&lt;/code>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;code>typeof(int *) p1,p2; &lt;/code>等价于&lt;/p>
+&lt;p>&lt;code>int *p1, *p2;&lt;/code>&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>&lt;code>typeof(int) *p3,p4;&lt;/code>等价于&lt;/p></description></item><item><title>iOS 应用的 main.m 文件</title><link>http://www.redscarf.me/ios-main/</link><pubDate>Sun, 13 Jul 2014 21:15:12 +1000</pubDate><guid>http://www.redscarf.me/ios-main/</guid><description>&lt;p>在项目导航面板中选中 main.m ，可以看到&lt;/p>
+&lt;pre tabindex="0">&lt;code>int main(int argc, char * argv[]) {
+ @autoreleasepool {
+ return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
+ }
+}
+&lt;/code>&lt;/pre>&lt;p>这是 iOS 应用的入口函数。UIApplicationMain 函数会创建一个 UIApplication 对象。每个 iOS 应用都有且只有一个 UIApplication 对象（单例），该对象的作用时维护运行循环。一旦程序创建了某个 UIApplication 对象，该对象的运行循环就会一直循环下去，main() 的执行也会因此阻塞。&lt;/p>
+&lt;p>此外，UIApplicationMain 函数还会创建某个指定类(此处为 AppDelegate)的对象，并将其设置为 UIApplication 对象的 delegate。UIApplicationMain 函数的第三个实参为 NSString 类型，指定了该对象所属的类。UIApplication 的 delegate 都需要遵守 UIApplicationDelegate 协议。&lt;/p>
+&lt;p>&lt;code>@interface AppDelegate : UIResponder &amp;lt;UIApplicationDelegate&amp;gt;&lt;/code>&lt;/p>
+&lt;p>在应用启动运行循环时，UIApplication 对象会在应用出现相应状态变化时，向其 delegate 发送特定的消息。如：&lt;/p>
+&lt;pre tabindex="0">&lt;code>- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions;
+- (void)applicationWillResignActive:(UIApplication *)application;
+- (void)applicationDidEnterBackground:(UIApplication *)application; 
+- (void)applicationWillEnterForeground:(UIApplication *)application;
+- (void)applicationDidBecomeActive:(UIApplication *)application;
+- (void)applicationWillTerminate:(UIApplication *)application;
+&lt;/code>&lt;/pre>&lt;p>UIApplication 负责建立应用程序的事件循环（Event Loop），事件循环中可以不断接收交互操作，比如屏幕触摸手势、各类传感器（重力加速器、陀螺仪等）等。&lt;/p></description></item></channel></rss>

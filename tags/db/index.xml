@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>DB on Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/tags/db/</link><description>Recent content in DB on Haisheng Wu's Tech Blog</description><generator>Hugo</generator><language>en</language><lastBuildDate>Tue, 25 Jul 2023 20:17:32 +1000</lastBuildDate><atom:link href="http://www.redscarf.me/tags/db/index.xml" rel="self" type="application/rss+xml"/><item><title>数据库的动态列</title><link>http://www.redscarf.me/db-dynamic-column/</link><pubDate>Tue, 25 Jul 2023 20:17:32 +1000</pubDate><guid>http://www.redscarf.me/db-dynamic-column/</guid><description>&lt;h1 id="动态列的几种设计思路">动态列的几种设计思路&lt;/h1>
+&lt;p>在需求开发过程中，我们有时会遇到一种场景：某个具体业务中的属性是动态的。在理想情况下，我们可以使用穷举法对所有可能的属性进行分析，然后进行分类，最终形成一套解决方案。然而，现实往往是骨感的，Leader和客户通常不会给我们这个时间。因此，我们需要探讨一些更为实际的解决方案。&lt;/p>
+&lt;h2 id="一使用数据库ddl进行动态创建">一、使用数据库DDL进行动态创建&lt;/h2>
+&lt;p>&lt;strong>优点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>操作简单，只需通过SQL管理即可实现。&lt;/li>
+&lt;/ol>
+&lt;p>&lt;strong>缺点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>不同情况下的动态字段增加会导致表结构膨胀。&lt;/li>
+&lt;li>在已有数据的表中修改字段容易导致锁表，影响性能。&lt;/li>
+&lt;/ol>
+&lt;h2 id="二使用数据库预留字段">二、使用数据库预留字段&lt;/h2>
+&lt;p>&lt;strong>优点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>与数据库无关，对业务侵入性小。&lt;/li>
+&lt;/ol>
+&lt;p>&lt;strong>缺点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>扩展性差，超出预留字段范围后如何处理新字段？&lt;/li>
+&lt;li>可读性差，预留字段通常为&lt;code>attr1&lt;/code>、&lt;code>attr2&lt;/code>等，影响字段的可读性。&lt;/li>
+&lt;li>性能较低，为兼容多种数据类型，预留字段通常采用较长的文本数据类型存储，影响数据库性能。&lt;/li>
+&lt;/ol>
+&lt;h2 id="三使用数据库中的json数据类型">三、使用数据库中的JSON数据类型&lt;/h2>
+&lt;p>&lt;strong>优点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>使用简单，绝大多数编程语言都支持JSON操作，方便快捷。&lt;/li>
+&lt;li>对于MySQL或PostgreSQL等数据库，已原生支持JSON字段，可基于JSON进行扩展查询。&lt;/li>
+&lt;li>JSON采用&lt;code>key:value&lt;/code>形式存储数据，可避免字段可读性差的问题，通过规范命名提高可读性。&lt;/li>
+&lt;li>扩展性高，增加或删除字段实现简单，直接移除&lt;code>key&lt;/code>即可，不影响表性能。&lt;/li>
+&lt;/ol>
+&lt;p>&lt;strong>缺点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>JSON字段查询操作与普通字段稍有差异，有一定复杂度。&lt;/li>
+&lt;li>JSON字段的索引性能有待提高。&lt;/li>
+&lt;/ol>
+&lt;h2 id="四使用nosql数据库">四、使用NoSQL数据库&lt;/h2>
+&lt;p>&lt;strong>优点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>采用MongoDB等JSON数据库，可以快速扩展。&lt;/li>
+&lt;li>专业数据存储，查询等性能可针对优化，性能高。&lt;/li>
+&lt;/ol>
+&lt;p>&lt;strong>缺点：&lt;/strong>&lt;/p>
+&lt;ol>
+&lt;li>需要一定的学习成本。&lt;/li>
+&lt;/ol>
+&lt;p>综上所述，第一种和第二种方案若非必要，不建议采用。第三种方案在中小项目中能应对绝大多数需求。如果存储的数据较多且性能要求较高，可以考虑采用第四种方案或第三、四种方案相结合。&lt;/p>
+&lt;hr>
+&lt;h1 id="支持动态列的数据库">支持动态列的数据库&lt;/h1>
+&lt;h2 id="mariadb">MariaDB&lt;/h2>
+&lt;p>通过创建BLOB列（最大64k？），可以使用&lt;code>mariadb-dynamic-columns&lt;/code>实现动态列。&lt;/p>
+&lt;h3 id="示例">示例：&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sql" data-lang="sql">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">CREATE&lt;/span> &lt;span style="color:#66d9ef">TABLE&lt;/span> items
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>(
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> id INT &lt;span style="color:#66d9ef">NOT&lt;/span> &lt;span style="color:#66d9ef">NULL&lt;/span> &lt;span style="color:#66d9ef">PRIMARY&lt;/span> &lt;span style="color:#66d9ef">KEY&lt;/span> AUTO_INCREMENT,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> name varchar(&lt;span style="color:#ae81ff">100&lt;/span>) &lt;span style="color:#66d9ef">NOT&lt;/span> &lt;span style="color:#66d9ef">NULL&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> attributes BLOB
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>);
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol>
+&lt;li>&lt;strong>插入数据时使用特定函数（&lt;code>COLUMN_CREATE&lt;/code>）指定动态列的数据结构，&lt;code>key/value&lt;/code>形式：&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sql" data-lang="sql">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">INSERT&lt;/span> &lt;span style="color:#66d9ef">INTO&lt;/span> items (name, attributes) &lt;span style="color:#66d9ef">VALUES&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>(&lt;span style="color:#e6db74">&amp;#39;MariaDB t-shirt&amp;#39;&lt;/span>, COLUMN_CREATE(&lt;span style="color:#e6db74">&amp;#39;colour&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;blue&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;size&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;XXL&amp;#39;&lt;/span>)),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>(&lt;span style="color:#e6db74">&amp;#39;MariaDB t-shirt&amp;#39;&lt;/span>, COLUMN_CREATE(&lt;span style="color:#e6db74">&amp;#39;colour&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;blue&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;size&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;XL&amp;#39;&lt;/span>)),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>(&lt;span style="color:#e6db74">&amp;#39;Samsung Galaxy S5&amp;#39;&lt;/span>, COLUMN_CREATE(&lt;span style="color:#e6db74">&amp;#39;colour&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;white&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;OS&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;Android&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;type&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;phone&amp;#39;&lt;/span>)),
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>(&lt;span style="color:#e6db74">&amp;#39;Samsung Galaxy Pro 3&amp;#39;&lt;/span>, COLUMN_CREATE(&lt;span style="color:#e6db74">&amp;#39;colour&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;white&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;size&amp;#39;&lt;/span>,&lt;span style="color:#ae81ff">8&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;OS&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;Android&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;resolution&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;1920x1200&amp;#39;&lt;/span>, &lt;span style="color:#e6db74">&amp;#39;type&amp;#39;&lt;/span>,&lt;span style="color:#e6db74">&amp;#39;tablet&amp;#39;&lt;/span>));
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="2">
+&lt;li>&lt;strong>查询时使用&lt;code>COLUMN_JSON&lt;/code>函数，返回JSON格式的数据：&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sql" data-lang="sql">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">SELECT&lt;/span> name &lt;span style="color:#66d9ef">AS&lt;/span> Item,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>COLUMN_JSON(attributes) &lt;span style="color:#66d9ef">AS&lt;/span> &lt;span style="color:#e6db74">&amp;#39;Dynamic Columns&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">FROM&lt;/span> items &lt;span style="color:#66d9ef">LIMIT&lt;/span> &lt;span style="color:#ae81ff">1&lt;/span>;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="3">
+&lt;li>&lt;strong>使用&lt;code>COLUMN_LIST&lt;/code>函数列举列中包含的属性，如&lt;code>colour&lt;/code>、&lt;code>size&lt;/code>：&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sql" data-lang="sql">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">SELECT&lt;/span> name &lt;span style="color:#66d9ef">AS&lt;/span> Item,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>COLUMN_LIST(attributes) &lt;span style="color:#66d9ef">AS&lt;/span> &lt;span style="color:#e6db74">&amp;#39;Attribute Names&amp;#39;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">FROM&lt;/span> items;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="4">
+&lt;li>&lt;strong>查询动态列中具体的某个属性，如&lt;code>colour&lt;/code>：&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-sql" data-lang="sql">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">SELECT&lt;/span> name &lt;span style="color:#66d9ef">AS&lt;/span> Item,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>COLUMN_GET(attributes, &lt;span style="color:#e6db74">&amp;#39;colour&amp;#39;&lt;/span> &lt;span style="color:#66d9ef">AS&lt;/span> CHAR) &lt;span style="color:#66d9ef">AS&lt;/span> Colour
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#66d9ef">FROM&lt;/span> items;
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="postgresql">PostgreSQL&lt;/h2>
+&lt;p>支持JSON数据类型，相比普通&lt;code>text&lt;/code>文本字段类型，JSON数据类型强制要求列中每个存储的值都符合JSON格式规则。&lt;/p></description></item></channel></rss>

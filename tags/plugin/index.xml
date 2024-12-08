@@ -1,14 +1,26 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0"><channel><title>Plugin - 标签 - Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/tags/plugin/</link><description>Plugin - 标签 - Haisheng Wu's Tech Blog</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>whs543@sina.com (Haisheng Wu)</managingEditor><webMaster>whs543@sina.com (Haisheng Wu)</webMaster><lastBuildDate>Thu, 30 Apr 2020 19:10:32 +0100</lastBuildDate><atom:link href="http://www.redscarf.me/tags/plugin/" rel="self" type="application/rss+xml"/><item><title>Lombok</title><link>http://www.redscarf.me/lombok/</link><pubDate>Thu, 30 Apr 2020 19:10:32 +0100</pubDate><author>whs543@sina.com</author><dc:creator>Haisheng Wu</dc:creator><guid>http://www.redscarf.me/lombok/</guid><description><![CDATA[介绍 Lombok 是提升 Java 编码效率常用的工具，借助它开发人员可以使用注解来自动生成一些模版代码。比如 getter、setter、equals、toString 等方法。
-安装 在 maven 中添加依赖 1 2 3 4 5 6  &lt;dependency&gt; &lt;groupId&gt;org.projectlombok&lt;/groupId&gt; &lt;artifactId&gt;lombok&lt;/artifactId&gt; &lt;version&gt;1.18.4&lt;/version&gt; &lt;scope&gt;provided&lt;/scope&gt; &lt;/dependency&gt;   在编辑器中添加插件 如：Intellij Idea，在 setting 的 plugin 里搜索lombok plugin，安装插件
-使用 常用的几个注解
-@Data ：注在类上，自动生成类的 get、set、equals、hashCode、canEqual、toString 方法
-@AllArgsConstructor ：注在类上，自动生成类的全参构造方法
-@NoArgsConstructor ：注在类上，自动生成类的无参构造
-@Setter ：注在属性上，自动生成 set 方法
-@Getter ：注在属性上，自动生成 get 方法
-@EqualsAndHashCode ：注在类上，自动生成对应的 equals 和 hashCode 方法
-@Log4j/@Slf4j ：注在类上，自动生成对应的 Logger 对象，变量名为 log
-@Cleanup(&ldquo;close&rdquo;)：注在本地变量上，自动释放资源（如：关闭 InputStream）
-@Synchronized：注在方法上，自动生成一个私有锁变量
-@SneakyThrows：自动生成异常处理语句
- 注意继承关系中使用 Lombok @EqualsAndHashCode 与 @ToString 注解默认情况下忽略父类的成员变量。譬如打印时 toString 返回的结果中缺少父类的成员变量，解决办法是在注解中设置 callSuper 属性为 true， @ToString(callSuper = true) 、@EqualsAndHashCode(callsuper = true)。]]></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Plugin on Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/tags/plugin/</link><description>Recent content in Plugin on Haisheng Wu's Tech Blog</description><generator>Hugo</generator><language>en</language><lastBuildDate>Thu, 30 Apr 2020 19:10:32 +0100</lastBuildDate><atom:link href="http://www.redscarf.me/tags/plugin/index.xml" rel="self" type="application/rss+xml"/><item><title>Lombok</title><link>http://www.redscarf.me/lombok/</link><pubDate>Thu, 30 Apr 2020 19:10:32 +0100</pubDate><guid>http://www.redscarf.me/lombok/</guid><description>&lt;h2 id="介绍">介绍&lt;/h2>
+&lt;p>&lt;code>Lombok&lt;/code> 是提升 Java 编码效率常用的工具，借助它开发人员可以使用注解来自动生成一些模版代码。比如 &lt;code>getter&lt;/code>、&lt;code>setter&lt;/code>、&lt;code>equals&lt;/code>、&lt;code>toString&lt;/code> 等方法。&lt;/p>
+&lt;h2 id="安装">安装&lt;/h2>
+&lt;h3 id="在-maven-中添加依赖">在 maven 中添加依赖&lt;/h3>
+&lt;pre tabindex="0">&lt;code>&amp;lt;dependency&amp;gt;
+ &amp;lt;groupId&amp;gt;org.projectlombok&amp;lt;/groupId&amp;gt;
+ &amp;lt;artifactId&amp;gt;lombok&amp;lt;/artifactId&amp;gt;
+ &amp;lt;version&amp;gt;1.18.4&amp;lt;/version&amp;gt;
+ &amp;lt;scope&amp;gt;provided&amp;lt;/scope&amp;gt;
+&amp;lt;/dependency&amp;gt;
+&lt;/code>&lt;/pre>&lt;h3 id="在编辑器中添加插件">在编辑器中添加插件&lt;/h3>
+&lt;p>如：Intellij Idea，在 setting 的 plugin 里搜索lombok plugin，安装插件&lt;/p>
+&lt;h2 id="使用">使用&lt;/h2>
+&lt;p>&lt;strong>常用的几个注解&lt;/strong>&lt;/p>
+&lt;p>@Data ：注在类上，自动生成类的 get、set、equals、hashCode、canEqual、toString 方法&lt;/p>
+&lt;p>@AllArgsConstructor ：注在类上，自动生成类的全参构造方法&lt;/p>
+&lt;p>@NoArgsConstructor ：注在类上，自动生成类的无参构造&lt;/p>
+&lt;p>@Setter ：注在属性上，自动生成 set 方法&lt;/p>
+&lt;p>@Getter ：注在属性上，自动生成 get 方法&lt;/p>
+&lt;p>@EqualsAndHashCode ：注在类上，自动生成对应的 equals 和 hashCode 方法&lt;/p>
+&lt;p>@Log4j/@Slf4j ：注在类上，自动生成对应的 Logger 对象，变量名为 log&lt;/p>
+&lt;p>@Cleanup(&amp;ldquo;close&amp;rdquo;)：注在本地变量上，自动释放资源（如：关闭 InputStream）&lt;/p>
+&lt;p>@Synchronized：注在方法上，自动生成一个私有锁变量&lt;/p>
+&lt;p>@SneakyThrows：自动生成异常处理语句&lt;/p>
+&lt;blockquote>
+&lt;p>&lt;strong>注意继承关系中使用 Lombok&lt;/strong> &lt;code>@EqualsAndHashCode&lt;/code> 与 &lt;code>@ToString&lt;/code> 注解默认情况下忽略父类的成员变量。譬如打印时 &lt;code>toString&lt;/code> 返回的结果中缺少父类的成员变量，解决办法是在注解中设置 &lt;code>callSuper&lt;/code> 属性为 &lt;code>true&lt;/code>， &lt;code>@ToString(callSuper = true)&lt;/code> 、&lt;code>@EqualsAndHashCode(callsuper = true)&lt;/code>。&lt;/p></description></item></channel></rss>

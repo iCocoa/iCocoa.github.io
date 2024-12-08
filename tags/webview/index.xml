@@ -1,6 +1,50 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0"><channel><title>WebView - 标签 - Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/tags/webview/</link><description>WebView - 标签 - Haisheng Wu's Tech Blog</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>whs543@sina.com (Haisheng Wu)</managingEditor><webMaster>whs543@sina.com (Haisheng Wu)</webMaster><lastBuildDate>Tue, 18 Oct 2016 20:09:01 +1000</lastBuildDate><atom:link href="http://www.redscarf.me/tags/webview/" rel="self" type="application/rss+xml"/><item><title>iOS Hook WebView 的代理方法</title><link>http://www.redscarf.me/ios-hook-uiwebview-delegate-method/</link><pubDate>Tue, 18 Oct 2016 20:09:01 +1000</pubDate><author>whs543@sina.com</author><dc:creator>Haisheng Wu</dc:creator><guid>http://www.redscarf.me/ios-hook-uiwebview-delegate-method/</guid><description>国内 DCloud 团队推出的 HTML5+ 技术框架可以用来开发 Hybrid 应用。经过调研，我们决定试一试 。框架的核心原理是使用 iOS 系统原生 UIWebView 和 WKWebView 来加载资源并渲染界面，Native 的能力（如拍照、蓝牙）通过自定义插件来提供。
-我们的应用有个需求，就是在 webview 加载完页面或者加载页面之前加入一些东西。比如：加载完页面后，根据 HTML 的 title 标签来设置导航栏标题。
-原生想要插手页面加载周期，只能靠代理方法。但是因为没法修改源码，所以只能找其它办法。主要思路是：使用 Method Swizzle 找出代理对象然后再换掉代理方法实现。
-以 UIWebView 为例，具体操作如下：
-第一步，通过交换 setDelegate 的实现，找到目标代理对象所属的类；
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 UIWebView+Intercepter.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>WebView on Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/tags/webview/</link><description>Recent content in WebView on Haisheng Wu's Tech Blog</description><generator>Hugo</generator><language>en</language><lastBuildDate>Tue, 18 Oct 2016 20:09:01 +1000</lastBuildDate><atom:link href="http://www.redscarf.me/tags/webview/index.xml" rel="self" type="application/rss+xml"/><item><title>iOS Hook WebView 的代理方法</title><link>http://www.redscarf.me/ios-hook-uiwebview-delegate-method/</link><pubDate>Tue, 18 Oct 2016 20:09:01 +1000</pubDate><guid>http://www.redscarf.me/ios-hook-uiwebview-delegate-method/</guid><description>&lt;blockquote>
+&lt;p>国内 DCloud 团队推出的 HTML5+ 技术框架可以用来开发 Hybrid 应用。经过调研，我们决定试一试 。框架的核心原理是使用 iOS 系统原生 UIWebView 和 WKWebView 来加载资源并渲染界面，Native 的能力（如拍照、蓝牙）通过自定义插件来提供。&lt;/p>
+&lt;/blockquote>
+&lt;p>我们的应用有个需求，就是在 webview 加载完页面或者加载页面之前加入一些东西。比如：加载完页面后，根据 HTML 的 title 标签来设置导航栏标题。&lt;/p>
+&lt;p>原生想要插手页面加载周期，只能靠代理方法。但是因为没法修改源码，所以只能找其它办法。主要思路是：使用 Method Swizzle 找出代理对象然后再换掉代理方法实现。&lt;/p>
+&lt;p>以 UIWebView 为例，具体操作如下：&lt;/p>
+&lt;p>&lt;strong>第一步，通过交换 setDelegate 的实现，找到目标代理对象所属的类；&lt;/strong>&lt;/p>
+&lt;pre tabindex="0">&lt;code>UIWebView+Intercepter.m
+
+- (void)p_setDelegate:(id&amp;lt;UIWebViewDelegate&amp;gt;)delegate
+{
+ [self p_setDelegate:delegate];
+ Class delegateClass = [self.delegate class];
+ // 进一步交换 delegateClass 的代理方法
+ [UIWebViewDelegateHook exchangeUIWebViewDelegateMethod:delegateClass];
+}
+
+#pragma mark - Method Swizzling
++ (void)load {
+ static dispatch_once_t onceToken;
+ dispatch_once(&amp;amp;onceToken, ^{
+ Class class = [super class];
+ 
+ // When swizzling a class method, use the following:
+ // Class class = object_getClass((id)self);
+ 
+ SEL originalSelector = @selector(setDelegate:);
+ SEL swizzledSelector = @selector(p_setDelegate:);
+ 
+ Method originalMethod = class_getInstanceMethod(class, originalSelector);
+ Method swizzledMethod = class_getInstanceMethod(class, swizzledSelector);
+ 
+ BOOL didAddMethod =
+ class_addMethod(class,
+ originalSelector,
+ method_getImplementation(swizzledMethod),
+ method_getTypeEncoding(swizzledMethod));
+ 
+ if (didAddMethod) {
+ class_replaceMethod(class,
+ swizzledSelector,
+ method_getImplementation(originalMethod),
+ method_getTypeEncoding(originalMethod));
+ } else {
+ method_exchangeImplementations(originalMethod, swizzledMethod);
+ }
+ 
+ });
+}
+&lt;/code>&lt;/pre>&lt;p>&lt;strong>第二步，把目标代理对象所属类的代理方法实现换成我们自己写的方法实现。&lt;/strong>&lt;/p></description></item></channel></rss>

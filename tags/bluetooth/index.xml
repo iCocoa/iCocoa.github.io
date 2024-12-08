@@ -1,8 +1,20 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0"><channel><title>Bluetooth - 标签 - Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/tags/bluetooth/</link><description>Bluetooth - 标签 - Haisheng Wu's Tech Blog</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>whs543@sina.com (Haisheng Wu)</managingEditor><webMaster>whs543@sina.com (Haisheng Wu)</webMaster><lastBuildDate>Mon, 26 Mar 2018 19:09:15 +1000</lastBuildDate><atom:link href="http://www.redscarf.me/tags/bluetooth/" rel="self" type="application/rss+xml"/><item><title>Core Bluetooth Programming Guide 译文</title><link>http://www.redscarf.me/ios-core-bluetooth-programming-guide/</link><pubDate>Mon, 26 Mar 2018 19:09:15 +1000</pubDate><author>whs543@sina.com</author><dc:creator>Haisheng Wu</dc:creator><guid>http://www.redscarf.me/ios-core-bluetooth-programming-guide/</guid><description>介绍 关于 Core Bluetooth Core Bluetooth 框架提供 iOS 应用和 Mac 应用与设备（配备了蓝牙低能耗无线技术的设备）通信的类。例如，应用可以发现、探测并与低能耗外围设备（比如心率监听器和数字恒温器）交互。从 macOS 10.9 和 iOS 6 开始，Mac 和 iOS 设备还可以当做蓝牙低能耗外设来使用，为其它设备提供数据，包括其他 Mac 和 iOS 设备。
-一览 蓝牙低能耗无线技术基于蓝牙 4.0 规范，规范中除了别的之外，定义了与低能耗设备通信的一套协议。Core Bluetooth 框架是蓝牙低能耗协议栈的一个抽象，也就是说，它为开发者隐藏了许多规范中的底层细节，让开发者更加容易开发应用（与蓝牙低能耗设备交互的应用）。
-中央和外围是 Core Bluetooth 的核心成员 在蓝牙低能耗通信中，有两个核心成员：中央（central）和外围（peripheral）。每个成员扮演不同的角色。外围通常拥有其他设备需要的数据，中央通常使用外围提供的信息来完成一些任务。例如，一个配备了蓝牙低能耗技术的数字恒温器可能为一个 iOS 应用提供房间的温度信息，然后该应用采用用户友好的方式来显示温度。
-每个成员在扮演它的角色时都会执行一组不同的任务。外围通过在空中广播持有的数据来让自身的存在被感知，中央设备扫描附近的外围设备（可能包含中央设备感兴趣的数据）。当中央设备发现外围设备，中央设备就请求与外围设备连接并开始探测和交互外围设备的数据。外围设备负责以适当的方式来响应中央设备。
-相关章节：Core Bluetooth Overview
-Core Bluetooth 简化了一般的蓝牙任务 Core Bluetooth 框架抽离了蓝牙 4.0 规范中的底层细节。因此，应用中需要实现的一般蓝牙低能耗任务被简化了。如果开发实现中央角色的应用，Core Bluetooth 使得发现、连接外围设备和探测、交互外围数据变得简单。另外，Core Bluetooth 还让本地设备实现外围角色变得简单。
-相关章节：Performing Commmon Central Role Tasks,Performing Common Peripheral Role Tasks
-iOS 应用的状态影响蓝牙的表现 当应用处于后台或挂起状态时，蓝牙相关的特性会受到影响。在这两种状态下，默认是应用无法执行蓝牙低能耗任务。也就是说，如果应用需要在后台执行蓝牙低能耗任务，可以声明支持 Core Bluetooth 后台运行模式中的一个或两个（一个属于中央角色，另一个属于外围角色）。即使在你指定了一个后台运行模式或两个都指定，当应用处于后台时，某些蓝牙任务的执行依然会有所不同，设计应用时，需要考虑到这些差异。</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Bluetooth on Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/tags/bluetooth/</link><description>Recent content in Bluetooth on Haisheng Wu's Tech Blog</description><generator>Hugo</generator><language>en</language><lastBuildDate>Mon, 26 Mar 2018 19:09:15 +1000</lastBuildDate><atom:link href="http://www.redscarf.me/tags/bluetooth/index.xml" rel="self" type="application/rss+xml"/><item><title>Core Bluetooth Programming Guide 译文</title><link>http://www.redscarf.me/ios-core-bluetooth-programming-guide/</link><pubDate>Mon, 26 Mar 2018 19:09:15 +1000</pubDate><guid>http://www.redscarf.me/ios-core-bluetooth-programming-guide/</guid><description>&lt;h1 id="介绍">介绍&lt;/h1>
+&lt;h2 id="关于-core-bluetooth">关于 Core Bluetooth&lt;/h2>
+&lt;p>Core Bluetooth 框架提供 iOS 应用和 Mac 应用与设备（配备了蓝牙低能耗无线技术的设备）通信的类。例如，应用可以发现、探测并与低能耗外围设备（比如心率监听器和数字恒温器）交互。从 macOS 10.9 和 iOS 6 开始，Mac 和 iOS 设备还可以当做蓝牙低能耗外设来使用，为其它设备提供数据，包括其他 Mac 和 iOS 设备。&lt;/p>
+&lt;p>&lt;img src="https://developer.apple.com/library/content/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/Art/CBTechnologyFramework_2x.png" alt="core_bluetooth_architecture">&lt;/p>
+&lt;h2 id="一览">一览&lt;/h2>
+&lt;p>蓝牙低能耗无线技术基于蓝牙 4.0 规范，规范中除了别的之外，定义了与低能耗设备通信的一套协议。Core Bluetooth 框架是蓝牙低能耗协议栈的一个抽象，也就是说，它为开发者隐藏了许多规范中的底层细节，让开发者更加容易开发应用（与蓝牙低能耗设备交互的应用）。&lt;/p>
+&lt;h3 id="中央和外围是-core-bluetooth-的核心成员">中央和外围是 Core Bluetooth 的核心成员&lt;/h3>
+&lt;p>在蓝牙低能耗通信中，有两个核心成员：中央（central）和外围（peripheral）。每个成员扮演不同的角色。外围通常拥有其他设备需要的数据，中央通常使用外围提供的信息来完成一些任务。例如，一个配备了蓝牙低能耗技术的数字恒温器可能为一个 iOS 应用提供房间的温度信息，然后该应用采用用户友好的方式来显示温度。&lt;/p>
+&lt;p>每个成员在扮演它的角色时都会执行一组不同的任务。外围通过在空中广播持有的数据来让自身的存在被感知，中央设备扫描附近的外围设备（可能包含中央设备感兴趣的数据）。当中央设备发现外围设备，中央设备就请求与外围设备连接并开始探测和交互外围设备的数据。外围设备负责以适当的方式来响应中央设备。&lt;/p>
+&lt;blockquote>
+&lt;p>相关章节：&lt;a href="https://developer.apple.com/library/content/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/CoreBluetoothOverview/CoreBluetoothOverview.html#//apple_ref/doc/uid/TP40013257-CH2-SW1">Core Bluetooth Overview&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h3 id="core-bluetooth-简化了一般的蓝牙任务">Core Bluetooth 简化了一般的蓝牙任务&lt;/h3>
+&lt;p>Core Bluetooth 框架抽离了蓝牙 4.0 规范中的底层细节。因此，应用中需要实现的一般蓝牙低能耗任务被简化了。如果开发实现中央角色的应用，Core Bluetooth 使得发现、连接外围设备和探测、交互外围数据变得简单。另外，Core Bluetooth 还让本地设备实现外围角色变得简单。&lt;/p>
+&lt;blockquote>
+&lt;p>相关章节：&lt;a href="https://developer.apple.com/library/content/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/PerformingCommonCentralRoleTasks/PerformingCommonCentralRoleTasks.html#//apple_ref/doc/uid/TP40013257-CH3-SW1">Performing Commmon Central Role Tasks&lt;/a>,&lt;a href="https://developer.apple.com/library/content/documentation/NetworkingInternetWeb/Conceptual/CoreBluetooth_concepts/PerformingCommonPeripheralRoleTasks/PerformingCommonPeripheralRoleTasks.html#//apple_ref/doc/uid/TP40013257-CH4-SW1">Performing Common Peripheral Role Tasks&lt;/a>&lt;/p>
+&lt;/blockquote>
+&lt;h3 id="ios-应用的状态影响蓝牙的表现">iOS 应用的状态影响蓝牙的表现&lt;/h3>
+&lt;p>当应用处于后台或挂起状态时，蓝牙相关的特性会受到影响。在这两种状态下，默认是应用无法执行蓝牙低能耗任务。也就是说，如果应用需要在后台执行蓝牙低能耗任务，可以声明支持 Core Bluetooth 后台运行模式中的一个或两个（一个属于中央角色，另一个属于外围角色）。即使在你指定了一个后台运行模式或两个都指定，当应用处于后台时，某些蓝牙任务的执行依然会有所不同，设计应用时，需要考虑到这些差异。&lt;/p>
+&lt;p>即使应用支持后台处理，应用仍然可能在任意时刻被系统终止以清空内存给当前前台应用使用。在 iOS 7之后，Core Bluetooth 支持保存中央和外围管理者对象的状态信息并在应用启动的时候恢复该状态，可以使用这个特性来支持涉及蓝牙设备的长期活动（long-term actions）。&lt;/p></description></item></channel></rss>

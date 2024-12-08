@@ -1,3 +1,23 @@
-<rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0"><channel><title>Block - 标签 - Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/tags/block/</link><description>Block - 标签 - Haisheng Wu's Tech Blog</description><generator>Hugo -- gohugo.io</generator><language>en</language><managingEditor>whs543@sina.com (Haisheng Wu)</managingEditor><webMaster>whs543@sina.com (Haisheng Wu)</webMaster><lastBuildDate>Sat, 20 Sep 2014 20:18:23 +1000</lastBuildDate><atom:link href="http://www.redscarf.me/tags/block/" rel="self" type="application/rss+xml"/><item><title>iOS Block</title><link>http://www.redscarf.me/ios-blocks/</link><pubDate>Sat, 20 Sep 2014 20:18:23 +1000</pubDate><author>whs543@sina.com</author><dc:creator>Haisheng Wu</dc:creator><guid>http://www.redscarf.me/ios-blocks/</guid><description><![CDATA[blocks 是 C 语言的扩充功能。blocks 是带有自动变量（局部变量）的匿名函数。
-截获自动变量 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16  int main() { int dmy = 256; int val = 10; const char *fmt = &#34;val = %d\n&#34;; void (^blk)(void) = ^{ printf(fmt,val); }; val = 2; fmt = &#34;These value were changed. val = %d\n&#34;; blk(); return 0; }   结果：val = 10
-分析：block 语法的表达式使用的是它之前声明的自动变量 fmt 和 val。block 表达式截获所使用的自动变量的值为瞬间值。因为 block 表达式保存了自动变量的值（截获），所以在执行 block 语法后，即使改写了 block 中使用的自动变量的值也不会影响 block 执行的结果。]]></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Block on Haisheng Wu's Tech Blog</title><link>http://www.redscarf.me/tags/block/</link><description>Recent content in Block on Haisheng Wu's Tech Blog</description><generator>Hugo</generator><language>en</language><lastBuildDate>Sat, 20 Sep 2014 20:18:23 +1000</lastBuildDate><atom:link href="http://www.redscarf.me/tags/block/index.xml" rel="self" type="application/rss+xml"/><item><title>iOS Block</title><link>http://www.redscarf.me/ios-blocks/</link><pubDate>Sat, 20 Sep 2014 20:18:23 +1000</pubDate><guid>http://www.redscarf.me/ios-blocks/</guid><description>&lt;p>&lt;code>blocks&lt;/code> 是 C 语言的扩充功能。blocks 是带有自动变量（局部变量）的匿名函数。&lt;/p>
+&lt;h3 id="截获自动变量">截获自动变量&lt;/h3>
+&lt;pre tabindex="0">&lt;code>int main()
+{
+	int dmy = 256;
+	int val = 10;
+	const char *fmt = &amp;#34;val = %d\n&amp;#34;;
+	void (^blk)(void) = ^{
+		printf(fmt,val);
+	};
+	
+	val = 2;
+	fmt = &amp;#34;These value were changed. val = %d\n&amp;#34;;
+	
+	blk();
+	
+	return 0;
+}
+&lt;/code>&lt;/pre>&lt;p>结果：&lt;code>val = 10&lt;/code>&lt;/p>
+&lt;p>分析：block 语法的表达式使用的是它之前声明的自动变量 fmt 和 val。block 表达式截获所使用的自动变量的值为瞬间值。因为 block 表达式保存了自动变量的值（截获），所以在执行 block 语法后，即使改写了 block 中使用的自动变量的值也不会影响 block 执行的结果。&lt;/p>
+&lt;p>需要在 block 中修改一个变量的值，需要使用 __block 说明符。&lt;/p>
+&lt;h3 id="block-的实质">block 的实质&lt;/h3>
+&lt;p>block 实际上是作为极普通的 C 语言源代码来处理的。通过支持 block 的编译器，含有 block 语法的源代码转换为一般 C 语言编译器能够处理的源代码，并作为极为普通的 C 语言代码被编译。&lt;/p></description></item></channel></rss>
