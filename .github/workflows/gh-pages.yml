@@ -20,7 +20,7 @@ jobs:
           hugo-version: '0.139.3'
 
       - name: Build
-        run: hugo --minify
+        run: hugo --minify --theme hugo-dpsg
 
       - name: Check public directory
         run: |
