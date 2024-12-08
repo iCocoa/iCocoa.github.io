@@ -1,4 +1,4 @@
-baseURL = "http://www.redscarf.me/"
+baseURL = "https://redscarf.me/"
 title = "Haisheng Wu's Tech Blog"
 languageCode = "en"
 defaultContentLanguage = "zh-cn"
