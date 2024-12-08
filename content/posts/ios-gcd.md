@@ -1,9 +1,19 @@
 ---
-title: "Grand Central Dispatch"
-date: 2015-01-05T20:13:18+10:00
-tags: ["iOS","GCD"]
-categories: ["iOS"]
+title: Grand Central Dispatch
+date: 2015-01-05 20:13:18+10:00
+tags:
+- iOS
+- GCD
+categories:
+- iOS
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 **GCD**（Grand Central Dispatch）是异步执行任务的技术之一。
 

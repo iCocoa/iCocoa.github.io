@@ -1,9 +1,19 @@
 ---
-title: "Kafka 总结"
-date: 2022-01-27T20:56:50+10:00
-tags: ["Kafka", "中间件"]
-categories: ["Java"]
+title: Kafka 总结
+date: 2022-01-27 20:56:50+10:00
+tags:
+- Kafka
+- 中间件
+categories:
+- Java
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 ### consumer 是推还是拉？
 https://kafka.apache.org/documentation/#design_pull

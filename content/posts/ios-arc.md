@@ -1,9 +1,19 @@
 ---
-title: "ARC"
-date: 2014-09-22T21:22:25+10:00
-tags: ["iOS","ARC"]
-categories: ["iOS"]
+title: ARC
+date: 2014-09-22 21:22:25+10:00
+tags:
+- iOS
+- ARC
+categories:
+- iOS
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 
 ## 什么是自动引用计数

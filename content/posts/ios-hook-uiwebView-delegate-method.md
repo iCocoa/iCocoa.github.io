@@ -1,9 +1,20 @@
 ---
-title: "iOS Hook WebView 的代理方法"
-date: 2016-10-18T20:09:01+10:00
-tags: ["iOS","WebView","Hook"]
-categories: ["iOS"]
+title: iOS Hook WebView 的代理方法
+date: 2016-10-18 20:09:01+10:00
+tags:
+- iOS
+- WebView
+- Hook
+categories:
+- iOS
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 > 国内 DCloud 团队推出的 HTML5+ 技术框架可以用来开发 Hybrid 应用。经过调研，我们决定试一试 。框架的核心原理是使用 iOS 系统原生 UIWebView 和 WKWebView 来加载资源并渲染界面，Native 的能力（如拍照、蓝牙）通过自定义插件来提供。
 

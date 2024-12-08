@@ -1,9 +1,19 @@
 ---
-title: "第一次成为技术主管易犯的3个常见错误"
-date: 2016-12-16T22:49:16+10:00
-tags: ["Management","翻译"]
-categories: ["翻译"]
+title: 第一次成为技术主管易犯的3个常见错误
+date: 2016-12-16 22:49:16+10:00
+tags:
+- Management
+- 翻译
+categories:
+- 翻译
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 译自 [Three Common Mistakes of the First Time Tech Lead](https://www.thoughtworks.com/en-cn/insights/blog/three-common-mistakes-first-time-tech-lead)
 

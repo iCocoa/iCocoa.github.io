@@ -1,9 +1,18 @@
 ---
-title: "博客搬新家了！！！"
-date: 2021-07-03T00:06:32+10:00
-tags: ["diary"]
-categories: ["diary"]
+title: 博客搬新家了！！！
+date: 2021-07-03 00:06:32+10:00
+tags:
+- diary
+categories:
+- diary
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 将博客生成器从原来的 Hexo 换成了 [Hugo](https://gohugo.io)。
 

@@ -1,9 +1,19 @@
 ---
-title: "iOS 10 需要在 info.plist 中添加权限设置"
-date: 2016-10-07T22:35:29+10:00
-tags: ["iOS", "Privacy"]
-categories: ["iOS"]
+title: iOS 10 需要在 info.plist 中添加权限设置
+date: 2016-10-07 22:35:29+10:00
+tags:
+- iOS
+- Privacy
+categories:
+- iOS
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 iOS 10 开始对隐私权限更加严格, 如需使用隐私权限需要在工程的 `info.plist` 文件中声明,如果不声明程序在调用隐私权限（如相机）时应用程序会崩溃。
 

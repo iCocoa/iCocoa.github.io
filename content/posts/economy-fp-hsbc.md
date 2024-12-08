@@ -1,9 +1,18 @@
 ---
-title: "付鹏11月24日在HSBC内部演讲速记"
-date: 2024-11-30T22:15:32+10:00
-tags: ["转载"]
-categories: ["Economy"]
+title: 付鹏11月24日在HSBC内部演讲速记
+date: 2024-11-30 22:15:32+10:00
+tags:
+- 转载
+- Economy
+categories:
+- News
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 《2024年年终回顾和2025年展望——对冲风险VS软着陆》
 

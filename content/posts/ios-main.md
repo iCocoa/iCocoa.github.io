@@ -1,9 +1,18 @@
 ---
-title: "iOS 应用的 main.m 文件"
-date: 2014-07-13T21:15:12+10:00
-tags: ["iOS"]
-categories: ["iOS"]
+title: iOS 应用的 main.m 文件
+date: 2014-07-13 21:15:12+10:00
+tags:
+- iOS
+categories:
+- iOS
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 在项目导航面板中选中 main.m ，可以看到
 

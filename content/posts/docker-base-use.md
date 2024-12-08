@@ -1,9 +1,20 @@
 ---
-title: "Docker 使用"
-date: 2020-07-07T22:15:32+10:00
-tags: ["Docker","Container","Devops"]
-categories: ["Docker"]
+title: Docker 使用
+date: 2020-07-07 22:15:32+10:00
+tags:
+- Docker
+- Container
+- Devops
+categories:
+- Docker
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 通过 Docker 命令行工具与 Docker Daemon 进程通讯使用。
 

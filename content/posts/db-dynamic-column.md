@@ -1,9 +1,21 @@
 ---
-title: "数据库的动态列"
-date: 2023-07-25T20:17:32+10:00
-tags: ["DB","Dynamic","Mariadb", "MySQL"]
-categories: ["DB"]
+title: 数据库的动态列
+date: 2023-07-25 20:17:32+10:00
+tags:
+- DB
+- Dynamic
+- Mariadb
+- MySQL
+categories:
+- DB
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 # 动态列的几种设计思路
 

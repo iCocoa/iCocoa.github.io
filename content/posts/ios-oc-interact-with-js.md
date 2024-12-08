@@ -1,9 +1,19 @@
 ---
-title: "OC 与 JS 通信的几种方式"
-date: 2017-06-23T22:57:25+10:00
-tags: ["iOS","JavaScript"]
-categories: ["iOS"]
+title: OC 与 JS 通信的几种方式
+date: 2017-06-23 22:57:25+10:00
+tags:
+- iOS
+- JavaScript
+categories:
+- iOS
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 1. 在代理方法中拦截协议
 2. 使用 JavaScriptCore

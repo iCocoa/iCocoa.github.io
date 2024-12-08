@@ -1,9 +1,19 @@
 ---
-title: "Android Gradle 注入编译变量"
-date: 2018-06-09T12:36:16+10:00
-tags: ["Gradle","Android"]
-categories: ["Android"]
+title: Android Gradle 注入编译变量
+date: 2018-06-09 12:36:16+10:00
+tags:
+- Gradle
+- Android
+categories:
+- Android
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 最近为了制作 Android 应用打包脚本，学习了一下 gradle。Gradle 构建系统语法简洁、功能强大、配置灵活，笔者只是把它当作一个构建工具来使用，基于它所提供的便利制作可以修改版本号、编译号、id 及导入证书的脚本。
 

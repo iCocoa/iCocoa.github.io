@@ -1,9 +1,19 @@
 ---
-title: "Auto Layout 知识点梳理"
-date: 2014-10-15T22:29:37+10:00
-tags: ["iOS","AutoLayout"]
-categories: ["iOS"]
+title: Auto Layout 知识点梳理
+date: 2014-10-15 22:29:37+10:00
+tags:
+- iOS
+- AutoLayout
+categories:
+- iOS
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 视图需要有确定的位置与大小才能正确显示在屏幕上。Auto Layout 使用对齐矩阵来确定视图的位置与大小，也就是所谓的约束。我们创建的每一条规则都规定了界面的一部分与另一部分的关系，某一部分可以由另一部分计算得出结果。
 

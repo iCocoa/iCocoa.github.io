@@ -1,9 +1,19 @@
 ---
-title: "iOS Block"
-date: 2014-09-20T20:18:23+10:00
-tags: ["Block","iOS"]
-categories: ["iOS"]
+title: iOS Block
+date: 2014-09-20 20:18:23+10:00
+tags:
+- Block
+- iOS
+categories:
+- iOS
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 `blocks` 是 C 语言的扩充功能。blocks 是带有自动变量（局部变量）的匿名函数。
 

@@ -1,9 +1,19 @@
 ---
-title: "iOS 远程打包脚本制作"
-date: 2018-07-23T20:00:50+10:00
-tags: ["iOS","Python"]
-categories: ["iOS"]
+title: iOS 远程打包脚本制作
+date: 2018-07-23 20:00:50+10:00
+tags:
+- iOS
+- Python
+categories:
+- iOS
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 在 iOS 开发中，一般打发布包都是在本地打包，也就是工程师在自己开发电脑上使用 Xcode 编译并导出安装包来进行发布，为了提高效率可能会制作一些自动化打包脚本。本文聊的是远程打包的内容，通过资源拷贝及参数替换然后编译完成打包。
 

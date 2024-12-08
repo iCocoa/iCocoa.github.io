@@ -1,9 +1,19 @@
 ---
-title: "Prompt 框架模版"
-date: 2023-07-09T21:30:32+10:00
-tags: ["Prompt","ChatGPT"]
-categories: ["AI"]
+title: Prompt 框架模版
+date: 2023-07-09 21:30:32+10:00
+tags:
+- Prompt
+- ChatGPT
+categories:
+- AI
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 ### Crispe
 

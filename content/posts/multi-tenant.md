@@ -1,9 +1,19 @@
 ---
-title: "多租户"
-date: 2023-07-24T19:30:32+10:00
-tags: ["multi-tenant","SAAS"]
-categories: ["web"]
+title: 多租户
+date: 2023-07-24 19:30:32+10:00
+tags:
+- multi-tenant
+- SAAS
+categories:
+- web
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 # 多租户软件架构概述
 

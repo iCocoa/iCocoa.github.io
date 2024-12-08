@@ -1,9 +1,19 @@
 ---
-title: "Core Bluetooth Programming Guide 译文"
-date: 2018-03-26T19:09:15+10:00
-tags: ["iOS","Bluetooth"]
-categories: ["翻译"]
+title: Core Bluetooth Programming Guide 译文
+date: 2018-03-26 19:09:15+10:00
+tags:
+- iOS
+- Bluetooth
+categories:
+- 翻译
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 # 介绍
 

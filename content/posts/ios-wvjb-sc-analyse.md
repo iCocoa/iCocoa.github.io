@@ -1,9 +1,19 @@
 ---
-title: "WebViewJavascriptBridge 源码剖析"
-date: 2018-12-20T22:21:48+10:00
-tags: ["iOS", "源码剖析"]
-categories: ["iOS"]
+title: WebViewJavascriptBridge 源码剖析
+date: 2018-12-20 22:21:48+10:00
+tags:
+- iOS
+- 源码剖析
+categories:
+- iOS
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 **WebViewJavascriptBridge** 是一个可以让 OC 与 JS 进行交互通信的第三方开源库。相比其他热门的第三方库，WebViewJavascriptBridge 代码量比较少，并且设计优雅巧妙，可以说是 “小而美”。
 

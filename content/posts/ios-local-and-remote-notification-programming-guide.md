@@ -1,9 +1,20 @@
 ---
-title: "Local and Remote Notification Programming Guide 译文"
-date: 2017-11-27T20:26:21+10:00
-tags: ["iOS","Notification"]
-categories: ["iOS","翻译"]
+title: Local and Remote Notification Programming Guide 译文
+date: 2017-11-27 20:26:21+10:00
+tags:
+- iOS
+- Notification
+categories:
+- iOS
+- 翻译
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 原文地址：[本地和远程通知编程指南](https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/)
 

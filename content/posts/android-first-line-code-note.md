@@ -1,9 +1,20 @@
 ---
-title: "《第一行代码》"
-date: 2017-10-14T11:59:26+10:00
-tags: ["读书笔记","Android"]
-categories: ["读书笔记"]
+title: 《第一行代码》
+date: 2017-10-14 11:59:26+10:00
+tags:
+- 读书笔记
+- Android
+categories:
+- 读书笔记
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
+draft: false
 ---
+
+
+
 
 最近为了学习 Android，找从事 Android 开发的朋友推荐些书，最后他推荐了《第一行代码》（第 2 版）和《Android 开发艺术探索》两本书。本文是在阅读了《第一行代码》之后所做的笔记，主要记录 Android 平台上的一些比较有趣的特性以及它和 iOS 的不同之处。
 

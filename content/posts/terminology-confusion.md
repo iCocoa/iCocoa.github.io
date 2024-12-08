@@ -1,9 +1,19 @@
 ---
-title: "Difference between authentication, authorization,verification, validation"
-date: 2017-12-12T21:41:34+10:00
-tags: ["翻译","Terminology"]
-categories: ["翻译"]
+title: Difference between authentication, authorization,verification, validation
+date: 2017-12-12 21:41:34+10:00
+tags:
+- 翻译
+- Terminology
+categories:
+- 翻译
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 `verification`, `validation`, `authentication`, `authorization` 这几个术语很常用，也经常被误用，这里做一次对比总结。
 

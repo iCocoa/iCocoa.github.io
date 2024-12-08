@@ -1,9 +1,20 @@
 ---
-title: "Lombok"
-date: 2020-04-30T19:10:32+01:00
-tags: ["Java","Tool","Plugin"]
-categories: ["Java"]
+title: Lombok
+date: 2020-04-30 19:10:32+01:00
+tags:
+- Java
+- Tool
+- Plugin
+categories:
+- Java
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 ## 介绍
 `Lombok` 是提升 Java 编码效率常用的工具，借助它开发人员可以使用注解来自动生成一些模版代码。比如 `getter`、`setter`、`equals`、`toString` 等方法。

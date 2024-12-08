@@ -1,9 +1,18 @@
 ---
-title: "Typeof()"
-date: 2014-07-27T20:56:50+10:00
-tags: ["C"]
-categories: ["C"]
+title: Typeof()
+date: 2014-07-27 20:56:50+10:00
+tags:
+- C
+categories:
+- C
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 看到项目中，有人这样写 `__weak __typeof__(self) wself = self;`。我查了一下资料，总结一下。
 
 typeof关键字是C语言中的一个新扩展,在linux内核中应用非常广泛。

@@ -1,9 +1,21 @@
 ---
-title: "HTTPS 单向/双向认证"
-date: 2016-11-08T20:09:40+10:00
-tags: ["web","Security","iOS","nginx"]
-categories: ["web"]
+title: HTTPS 单向/双向认证
+date: 2016-11-08 20:09:40+10:00
+tags:
+- web
+- Security
+- iOS
+- nginx
+categories:
+- web
+- Tech
+description: Example article description
+sidebar: left
+hiddenFromHomePage: false
 ---
+
+
+
 
 ## HTTPS
 
