@@ -1,0 +1,154 @@
+<!doctype html><html class=no-js lang=zh-cn><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=X-UA-Compatible content="IE=edge"><title>HTTPS 单向/双向认证 - Haisheng Wu's Tech Blog</title>
+<script>(function(e,t){e[t]=e[t].replace("no-js","js")})(document.documentElement,"className")</script><meta name=description content="Example article description"><meta property="og:title" content="HTTPS 单向/双向认证"><meta property="og:description" content="Example article description"><meta property="og:type" content="article"><meta property="og:url" content="https://redscarf.me/https-uni-bidirectional-authentication/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2016-11-08T20:09:40+10:00"><meta property="article:modified_time" content="2016-11-08T20:09:40+10:00"><meta itemprop=name content="HTTPS 单向/双向认证"><meta itemprop=description content="Example article description"><meta itemprop=datePublished content="2016-11-08T20:09:40+10:00"><meta itemprop=dateModified content="2016-11-08T20:09:40+10:00"><meta itemprop=wordCount content="422"><meta itemprop=keywords content="web,Security,iOS,nginx,"><meta name=twitter:card content="summary"><meta name=twitter:title content="HTTPS 单向/双向认证"><meta name=twitter:description content="Example article description"><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/custom.css><link rel="shortcut icon" href=/favicon.ico></head><body class=body><header class=header><div class="logo logo--mixed"><div class=container><a class=logo__link href=/ title="Haisheng Wu's Blog" rel=home><div class="logo__item logo__imagebox"><img class=logo__img src=/logo.png></div><div class="logo__item logo__text"><div class=logo__title>Haisheng Wu's Blog</div><div class=logo__tagline>Tech Blog</div></div></a></div></div></header><div class=divider></div><div class="container wrapper flex"><div class=primary><main class=main role=main><article class=post><header class=post__header><h1 class=post__title>HTTPS 单向/双向认证</h1><div class="post__meta meta"><div class="meta__item-datetime meta__item"><svg class="meta__icon icon icon-time" width="16" height="14" viewBox="0 0 30 28"><path d="M15 0C7 0 1 6 1 14s6 14 14 14 14-6 14-14S23 0 15 0zm0 25C9 25 4 20 4 14S9 3 15 3s11 5 11 11-5 11-11 11zm1-18h-2v8.4l6.8 4.4L22 18l-6-3.8V7z"/></svg><time class=meta__text datetime=2016-11-08T20:09:40+10:00>2016-11-08</time></div><div class="meta__item-categories meta__item"><svg class="meta__icon icon icon-category" width="16" height="16" viewBox="0 0 16 16"><path d="m7 2 1 2h8v11H0V2z"/></svg><span class=meta__text><a class=meta__link href=/categories/web/ rel=category>Web</a>, <a class=meta__link href=/categories/tech/ rel=category>Tech</a></span></div></div></header><div class="post__toc toc"><div class=toc__title>目录</div><div class=toc__menu><nav id=TableOfContents><ul><li><a href=#https>HTTPS</a></li><li><a href=#单向认证>单向认证</a></li><li><a href=#双向认证>双向认证</a></li><li><a href=#证书校验什么>证书校验什么</a></li><li><a href=#nginx-配置双向认证>nginx 配置双向认证</a></li><li><a href=#ios-客户端>iOS 客户端</a></li><li><a href=#postman-客户端>Postman 客户端</a></li><li><a href=#https-办不到的事情>HTTPS 办不到的事情</a></li></ul></nav></div></div><div class="content post__content clearfix"><h2 id=https>HTTPS</h2><p><img src=https://github.com/iCocoa/blog-diagram/raw/main/http.drawio.svg alt=http&amp;https></p><p>HyperText Transfer Protocol，超文本传输协议，是互联网上使用最广泛的一种协议。HTTP协议传输的数据都是未加密的，也就是明文的，不适合用来传输隐私信息。默认 80 端口。</p><p>Hyper Text Transfer Protocol over Secure Socket Layer，安全的超文本传输协议，网景公式设计了 SSL(Secure Sockets Layer) 协议用于对 Http 协议传输的数据进行加密，保证会话过程中的安全性。默认 443 端口。</p><p>SSL 包含对称加密和非对称加密，在建立传输链路时，SSL 首先使用非对称加密的方式对对称加密密钥进行加密，建立链路后，使用对称加密的方式对传输内容进行加密。非对称加密有更高的安全性，在这个基础上使用对称加密可以获得更快的速度，提高传输效率。</p><p><img src=https://images.ctfassets.net/slt3lc6tev37/34iiS7GovwS9tVEBisLVWb/65b0f7a31632a52ba6047c9d38daff0e/asymmetric-encryption.svg alt=asymmetric-encryption></p><h2 id=单向认证>单向认证</h2><p>客户端校验服务端证书</p><p><img src=https://github.com/iCocoa/blog-diagram/raw/main/unidirectional-authentication.drawio.svg alt=unidirectional-authentication></p><ol><li><p><strong>client hello</strong>
+客户端发起一条到服务端的连接，包含客户端支持的 TLS 版本、支持的加密套件(即加密算法)以及客户端随机数。</p></li><li><p><strong>server hello</strong>
+服务端回应，包含服务端 SSL 证书、选择的加密套件以及服务端随机数。</p></li><li><p><strong>authentication</strong>
+客户端向颁发证书的 CA 验证服务端的 SSL 证书，以确认服务端是它声称的那个身份，从而保证客户端与域名真正的所有者通信。</p></li><li><p><strong>send premaster key</strong>
+客户端发送另一个随机数 “premaster key”，并对它使用服务端的公钥（从服务端 SSL 证书中获取得到）进行加密。</p></li><li><p><strong>decrypt premaster key</strong>
+服务端解密 premaster key</p></li><li><p><strong>create session key</strong>
+客户端和服务端各自使用客户端随机数、服务端随机数以及 premaster key 来计算 “session key”，即对称加密密钥，两边计算得出同样的结果并各自保留。</p></li><li><p><strong>client send finished</strong>
+客户端使用 session key 加密一条 finished 消息并发送给服务端。</p></li><li><p><strong>server send finished</strong>
+服务端使用 session key 加密一条 finished 消息并发送给客户端。</p></li><li><p><strong>symmetric encrypt communication</strong>
+使用对称加密来进行通信。</p></li></ol><h2 id=双向认证>双向认证</h2><p>客户端校验服务端证书 + 服务端校验客户端证书</p><p><img src=https://github.com/iCocoa/blog-diagram/raw/main/bidirectional-authentication.drawio.svg alt=bidirectional-authentication></p><ol start=8><li><strong>verify certificate(digital signature)</strong>
+客户端发送一个 CertificateVerify 消息，这是使用客户端证书的私钥对前一个握手消息的签名。这个签名可以通过使用客户端证书的公钥进行验证。这样服务端就知道客户端可以访问证书的私钥，亦即拥有该证书。</li></ol><h2 id=证书校验什么>证书校验什么</h2><ol><li>验数字签名</li></ol><p>客户端发送一个“Certificate Verify”消息，其中包含前一个握手消息的数字签名副本。此消息使用客户端证书的私钥进行签名。服务器可以使用客户端的公钥(在客户端证书中找到)来验证数字签名的消息摘要。一旦验证了数字签名，服务器就知道属于客户端的公钥与用于创建签名的私钥相匹配。</p><ol start=2><li>验证书链</li></ol><p>服务端维护一个受信任的ca列表，该列表决定服务端将接受哪些证书。服务端将使用来自CA证书的公钥(在其可信CA列表中)来验证CA对所提供证书的数字签名。如果消息摘要已经更改，或者公钥与用于签名证书的CA私钥不对应，则验证失败，握手终止。</p><ol start=3><li>验有效期</li></ol><p>服务端将当前日期与证书中列出的有效期进行比较。如果过期日期没有通过，当前日期在期限内，那么一切都好。如果不是，则验证失败，握手终止。</p><ol start=4><li>验证书撤销状态</li></ol><p>服务端将客户端证书与系统中已撤销的证书列表进行比较。如果客户端证书在列表中，则验证失败，握手终止。</p><h2 id=nginx-配置双向认证>nginx 配置双向认证</h2><pre tabindex=0><code>listen       443;
+server_name  localhost;
+ssl on;
+ssl_certificate      /usr/local/opt/nginx/certificates/server.cer;
+ssl_certificate_key  /usr/local/opt/nginx/certificates/server.key.pem;
+ssl_client_certificate /usr/local/opt/nginx/certificates/ca.cer;
+ssl_verify_client    on;
+</code></pre><p>开启 ssl
+ssl_certificate 是服务端证书的路径，ssl_certificate_key是服务端私钥的路径
+ssl_verify_client 是配置双向认证（client certificate）
+ssl_client_certificate 是签发客户端证书的根证书</p><blockquote><p>为什么是根证书，因为可以签发很多客户端证书，只要是由该根证书签发的，服务端都视为认证通过</p></blockquote><p>配置完成以后，一般需要把80端口的http请求跳转到443端口，否则用户可以通过80端口以http方式访问，就失去了安全保护的意义</p><h2 id=ios-客户端>iOS 客户端</h2><ol><li>使用 NSURLSession 发出一个 https 请求</li></ol><pre tabindex=0><code>NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    
+NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
+    
+NSURL *url = [NSURL URLWithString:@&#34;https://localhost/test&#34;];
+
+NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
+[request setCachePolicy:NSURLRequestReloadIgnoringLocalCacheData];
+[request setHTTPShouldHandleCookies:NO];
+[request setTimeoutInterval:30];
+[request setHTTPMethod:@&#34;GET&#34;];
+    
+NSURLSessionDataTask *task = [session dataTaskWithURL:url completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+    NSString *message = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    NSLog(@&#34;%@&#34;, message);
+}];
+    
+[task resume];
+</code></pre><ol start=2><li>认证处理</li></ol><p>握手阶段回调方法两次，一次是 server 认证，一次是 client 认证。</p><pre tabindex=0><code>- (void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler
+{
+    NSString *method = challenge.protectionSpace.authenticationMethod;
+    NSLog(@&#34;%@&#34;, method);
+    
+    // 服务端证书认证
+    if([method isEqualToString:NSURLAuthenticationMethodServerTrust]){
+        
+        NSString *host = challenge.protectionSpace.host;
+        NSLog(@&#34;%@&#34;, host);
+        
+        NSURLCredential *credential = [NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust];
+        completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
+        return;
+    }
+
+    // 客户端证书
+    NSString *thePath = [[NSBundle mainBundle] pathForResource:@&#34;client&#34; ofType:@&#34;p12&#34;];
+    NSData *PKCS12Data = [[NSData alloc] initWithContentsOfFile:thePath];
+    CFDataRef inPKCS12Data = (CFDataRef)CFBridgingRetain(PKCS12Data);
+    SecIdentityRef identity;
+    
+    // 读取p12证书中的内容
+    OSStatus result = [self extractP12Data:inPKCS12Data toIdentity:&amp;identity];
+    if(result != errSecSuccess){
+        completionHandler(NSURLSessionAuthChallengeCancelAuthenticationChallenge, nil);
+        return;
+    }
+    
+    SecCertificateRef certificate = NULL;
+    SecIdentityCopyCertificate (identity, &amp;certificate);
+    
+    const void *certs[] = {certificate};
+    CFArrayRef certArray = CFArrayCreate(kCFAllocatorDefault, certs, 1, NULL);
+    
+    NSURLCredential *credential = [NSURLCredential credentialWithIdentity:identity certificates:(NSArray*)CFBridgingRelease(certArray) persistence:NSURLCredentialPersistencePermanent];
+    
+    completionHandler(NSURLSessionAuthChallengeUseCredential, credential);
+}
+
+- (OSStatus)extractP12Data:(CFDataRef)inP12Data toIdentity:(SecIdentityRef*)identity {
+    
+    OSStatus securityError = errSecSuccess;
+    
+    CFStringRef password = CFSTR(&#34;the_password&#34;);
+    const void *keys[] = { kSecImportExportPassphrase };
+    const void *values[] = { password };
+    
+    CFDictionaryRef options = CFDictionaryCreate(NULL, keys, values, 1, NULL, NULL);
+    
+    CFArrayRef items = CFArrayCreate(NULL, 0, 0, NULL);
+    securityError = SecPKCS12Import(inP12Data, options, &amp;items);
+    
+    if (securityError == 0) {
+        CFDictionaryRef ident = CFArrayGetValueAtIndex(items,0);
+        const void *tempIdentity = NULL;
+        tempIdentity = CFDictionaryGetValue(ident, kSecImportItemIdentity);
+        *identity = (SecIdentityRef)tempIdentity;
+    }
+    
+    if (options) {
+        CFRelease(options);
+    }
+    
+    return securityError;
+}
+</code></pre><h2 id=postman-客户端>Postman 客户端</h2><p>配置路径：偏好设置 》 证书 》 添加客户端证书</p><h2 id=https-办不到的事情>HTTPS 办不到的事情</h2><ul><li>隐藏要访问的站点名称</li></ul><p>这是因为网站的名称(又名“域名”)是通过DNS(域名服务)发送的，而DNS(域名服务)不在HTTPS隧道内。它在建立安全连接之前发送。中间的窃听者可以看到你要访问的网站的名称(例如 google.com)，只是不能读取任何来回传输的实际内容。除非采用 <a href=https://www.icann.org/resources/pages/dnssec-what-is-it-why-important-2019-03-05-en>DNSSEC</a> 。</p><ul><li>防止访问恶意网站</li></ul><p>HTTPS并不能确保网站本身是安全的。仅仅因为连接安全并不意味着你不会连接到一个由不法分子运营的网站。</p><ul><li>提供匿名性（IP、物理位置）</li></ul><p>HTTPS 不会隐藏物理位置或个人身份。个人 IP 地址不能加密，因为如果 IP 地址也被加密了，互联网就不知道该把它发送到哪里。而且它也不会在你访问的网站上掩盖你的身份，你访问的网站仍然知道你的一切。</p><ul><li>防止感染病毒</li></ul><p>HTTPS 不是过滤器，所以会有可能在 HTTPS 连接中收到病毒或木马。如果网络服务器被感染，病毒就会像其他报文一样被发送到 HTTPS 流中。然而，HTTPS确实阻止了中间人向流量中注入木马。</p><ul><li>防止电脑被黑</li></ul><p>HTTPS 仅在数据在客户端和服务端之间传输时提供安全保证，如果有恶意软件在监控连接的一端的流量，它仍然可以读取加密之前和之后的 HTTPS 流。</p><p>参考链接</p><ul><li><a href=https://en.wikipedia.org/wiki/Transport_Layer_Security#TLS_handshake>Wikipedia, Transport Layer Security</a></li><li><a href=http://www.moserware.com/2009/06/first-few-milliseconds-of-https.html>first-few-milliseconds-of-https</a></li></ul></div><footer class=post__footer><div class="post__tags tags clearfix"><svg class="tags__badge icon icon-tag" width="16" height="16" viewBox="0 0 32 32"><path d="M32 19c0 1-1 2-1 2L21 31s-1 1-2 1-2-1-2-1L2 16c-1-1-1.4-2-1.4-2S0 12.5.0 11V3C0 1.5.8.8.8.8S1.5.0 3 0h8c1.5.0 3 .6 3 .6S15 1 16 2l15 15s1 1 1 2zM7 10a3 3 0 100-6 3 3 0 000 6z"/></svg><ul class=tags__list><li class=tags__item><a class="tags__link btn" href=/tags/web/ rel=tag>web</a></li><li class=tags__item><a class="tags__link btn" href=/tags/security/ rel=tag>Security</a></li><li class=tags__item><a class="tags__link btn" href=/tags/ios/ rel=tag>iOS</a></li><li class=tags__item><a class="tags__link btn" href=/tags/nginx/ rel=tag>nginx</a></li></ul></div></footer></article></main><div class="authorbox clearfix"><p class=authorbox__warning><strong>WARNING:</strong> Authorbox is activated, but [Author] parameters are not specified.</p></div><nav class="pager flex"><div class="pager__item pager__item--prev"><a class=pager__link href=/ios-hook-uiwebview-delegate-method/ rel=prev><span class=pager__subtitle>«&#8201;上一篇</span><p class=pager__title>iOS Hook WebView 的代理方法</p></a></div><div class="pager__item pager__item--next"><a class=pager__link href=/three-common-mistakes-of-the-first-time-tech-lead/ rel=next><span class=pager__subtitle>下一篇&#8201;»</span><p class=pager__title>第一次成为技术主管易犯的3个常见错误</p></a></div></nav></div><aside class="sidebar sidebar--left"><div class="widget-search widget"><form class=widget-search__form role=search method=get action=https://google.com/search><label><input class=widget-search__field type=search placeholder=搜索... name=q aria-label=搜索...>
+</label><input class=widget-search__submit type=submit value=Search>
+<input type=hidden name=sitesearch value=https://redscarf.me/></form></div><div class="widget-recent widget"><h4 class=widget__title>近期文章</h4><div class=widget__content><ul class=widget__list><li class=widget__item><a class=widget__link href=/economy-fp-hsbc/>付鹏11月24日在HSBC内部演讲速记</a></li><li class=widget__item><a class=widget__link href=/db-dynamic-column/>数据库的动态列</a></li><li class=widget__item><a class=widget__link href=/multi-tenant/>多租户</a></li><li class=widget__item><a class=widget__link href=/prompt-template/>Prompt 框架模版</a></li><li class=widget__item><a class=widget__link href=/kafka-1/>Kafka 总结</a></li></ul></div></div><div class="widget-categories widget"><h4 class=widget__title>分类</h4><div class=widget__content><ul class=widget__list><li class=widget__item><a class=widget__link href=/categories/ai/>AI</a></li><li class=widget__item><a class=widget__link href=/categories/android/>Android</a></li><li class=widget__item><a class=widget__link href=/categories/c/>C</a></li><li class=widget__item><a class=widget__link href=/categories/db/>DB</a></li><li class=widget__item><a class=widget__link href=/categories/diary/>Diary</a></li><li class=widget__item><a class=widget__link href=/categories/docker/>Docker</a></li><li class=widget__item><a class=widget__link href=/categories/ios/>IOS</a></li><li class=widget__item><a class=widget__link href=/categories/java/>Java</a></li><li class=widget__item><a class=widget__link href=/categories/news/>News</a></li><li class=widget__item><a class=widget__link href=/categories/tech/>Tech</a></li><li class=widget__item><a class=widget__link href=/categories/web/>Web</a></li><li class=widget__item><a class=widget__link href=/categories/%E7%BF%BB%E8%AF%91/>翻译</a></li><li class=widget__item><a class=widget__link href=/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/>读书笔记</a></li></ul></div></div><div class="widget-taglist widget"><h4 class=widget__title>标签</h4><div class=widget__content><a class="widget-taglist__link widget__link btn" href=/tags/android/ title=Android>Android (2)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/arc/ title=ARC>ARC (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/autolayout/ title=AutoLayout>AutoLayout (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/block/ title=Block>Block (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/bluetooth/ title=Bluetooth>Bluetooth (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/c/ title=C>C (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/chatgpt/ title=ChatGPT>ChatGPT (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/container/ title=Container>Container (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/db/ title=DB>DB (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/devops/ title=Devops>Devops (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/diary/ title=Diary>Diary (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/docker/ title=Docker>Docker (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/dynamic/ title=Dynamic>Dynamic (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/economy/ title=Economy>Economy (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/gcd/ title=GCD>GCD (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/gradle/ title=Gradle>Gradle (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/hook/ title=Hook>Hook (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/ios/ title=IOS>IOS (13)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/java/ title=Java>Java (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/javascript/ title=JavaScript>JavaScript (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/kafka/ title=Kafka>Kafka (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/management/ title=Management>Management (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/mariadb/ title=Mariadb>Mariadb (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/multi-tenant/ title=Multi-Tenant>Multi-Tenant (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/mysql/ title=MySQL>MySQL (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/nginx/ title=Nginx>Nginx (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/notification/ title=Notification>Notification (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/plugin/ title=Plugin>Plugin (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/privacy/ title=Privacy>Privacy (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/prompt/ title=Prompt>Prompt (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/python/ title=Python>Python (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/saas/ title=SAAS>SAAS (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/security/ title=Security>Security (2)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/terminology/ title=Terminology>Terminology (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/token/ title=Token>Token (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/tool/ title=Tool>Tool (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/web/ title=Web>Web (2)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/webview/ title=WebView>WebView (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/ title=中间件>中间件 (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ title=源码剖析>源码剖析 (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E7%BF%BB%E8%AF%91/ title=翻译>翻译 (2)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ title=读书笔记>读书笔记 (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E8%BD%AC%E8%BD%BD/ title=转载>转载 (1)</a></div></div><div class="widget-social widget"><h4 class="widget-social__title widget__title">社交</h4><div class="widget-social__content widget__content"><div class="widget-social__item widget__item"><a class="widget-social__link widget__link btn" title=GitHub rel="noopener noreferrer" href=https://github.com/iCocoa target=_blank><svg class="widget-social__link-icon icon icon-github" width="24" height="24" viewBox="0 0 384 374"><path d="m192 0C85.9.0.0 85.8.0 191.7c0 84.7 55 156.6 131.3 181.9 9.6 1.8 13.1-4.2 13.1-9.2.0-4.6-.2-16.6-.3-32.6-53.4 11.6-64.7-25.7-64.7-25.7-8.7-22.1-21.3-28-21.3-28-17.4-11.9 1.3-11.6 1.3-11.6 19.3 1.4 29.4 19.8 29.4 19.8 17.1 29.3 44.9 20.8 55.9 15.9 1.7-12.4 6.7-20.8 12.2-25.6-42.6-4.8-87.5-21.3-87.5-94.8.0-20.9 7.5-38 19.8-51.4-2-4.9-8.6-24.3 1.9-50.7.0.0 16.1-5.2 52.8 19.7 15.3-4.2 31.7-6.4 48.1-6.5 16.3.1 32.7 2.2 48.1 6.5 36.7-24.8 52.8-19.7 52.8-19.7 10.5 26.4 3.9 45.9 1.9 50.7 12.3 13.4 19.7 30.5 19.7 51.4.0 73.7-44.9 89.9-87.7 94.6 6.9 5.9 13 17.6 13 35.5.0 25.6-.2 46.3-.2 52.6.0 5.1 3.5 11.1 13.2 9.2C329 348.2 384 276.4 384 191.7 384 85.8 298 0 192 0z"/></svg>
+<span>GitHub</span></a></div><div class="widget-social__item widget__item"><a class="widget-social__link widget__link btn" title=Email href=mailto:whs543@sina.com><svg class="widget-social__link-icon icon icon-mail" width="24" height="24" viewBox="0 0 416 288"><path d="m0 16v256 16h16 384 16v-16V16 0h-16H16 0zm347 16-139 92.5L69 32zM199 157.5l9 5.5 9-5.5L384 46v210H32V46z"/></svg>
+<span>whs543@sina.com</span></a></div></div></div></aside></div><footer class=footer><div class="container footer__container flex"><div class=footer__copyright>&copy; 2024 Haisheng Wu.
+<span class=footer__copyright-credits>基于 <a href=https://gohugo.io/ rel="nofollow noopener" target=_blank>Hugo</a> 引擎和 <a href=https://github.com/pfadfinder-konstanz/hugo-dpsg/ rel="nofollow noopener" target=_blank>DPSG</a>主題</span>
+<span><a href=/imprint>Imprint and Privacy</a></span></div><div class=footer__copyright>Donate!</div></div></footer><script async defer src=/js/menu.js></script><script src=/js/custom.js></script></body></html>

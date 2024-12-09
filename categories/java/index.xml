@@ -1,37 +1,17 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Java on Haisheng Wu's Tech Blog</title><link>https://redscarf.me/categories/java/</link><description>Recent content in Java on Haisheng Wu's Tech Blog</description><generator>Hugo</generator><language>en</language><lastBuildDate>Thu, 27 Jan 2022 20:56:50 +1000</lastBuildDate><atom:link href="https://redscarf.me/categories/java/index.xml" rel="self" type="application/rss+xml"/><item><title>Kafka 总结</title><link>https://redscarf.me/kafka-1/</link><pubDate>Thu, 27 Jan 2022 20:56:50 +1000</pubDate><guid>https://redscarf.me/kafka-1/</guid><description>&lt;h3 id="consumer-是推还是拉">consumer 是推还是拉？&lt;/h3>
-&lt;p>&lt;a href="https://kafka.apache.org/documentation/#design_pull">https://kafka.apache.org/documentation/#design_pull&lt;/a>
-kafka 生产者端生成消息推送（push）到 broker，消费者端从 broker 拉取（pull）消息。&lt;/p>
-&lt;p>&lt;strong>统一采用 pull 的方式？&lt;/strong>
-boker 从生产者 pull 消息。在生产者数量庞大的场景下，broker 需要管理维护很多的关系，简直是梦魇。所以采用的是生产者往 broker push 消息。&lt;/p>
-&lt;p>&lt;strong>统一采用 push 的方式？&lt;/strong>
-broker 往 consumer push 消息。在 consumer 多样化的场景下，如果生产者的生产速率远远大于消费者，broker 控制不好，push 会造成 consumer 不堪重负。反之，由 consumer 根据自身处理速率来决定何时从 broker 拉取消息，会更好。采用 pull 的弊端在于，如果 broker 没有消息，那么就会空转，这可以通过在调用 poll 接口时传入等待时间阻塞或者传入批次数据包大小来等待阻塞。&lt;/p>
-&lt;h3 id="kafka-的-ack-机制">kafka 的 ack 机制&lt;/h3>
-&lt;p>客户端连接到 leader broker 上，发送消息之后，等待或不等待 leader broker 的 ack（是否等待取决于参数&lt;code>request.required.acks&lt;/code> 配置）。比如：
-客户端设置 &lt;code>acks=0&lt;/code>，客户端不作任何等待，即使消息没有写入 kafka 集群。
-客户端设置 &lt;code>acks=1&lt;/code>，客户端会等待 Leader 副本成功写入后返回的确认，但如果 Leader 副本在消息被同步到其他副本之前崩溃，消息可能会丢失。
-客户端设置 &lt;code>acks=all&lt;/code> 或 &lt;code>acks=-1&lt;/code>参数，leader 在接收到客户端的消息之后，先写入日志文件，然后往同步副本（ISR）发送数据，等所有的 follower 都确认消息写入成功后，leader 再给客户端发送 ack 确认。&lt;/p></description></item><item><title>Lombok</title><link>https://redscarf.me/lombok/</link><pubDate>Thu, 30 Apr 2020 19:10:32 +0100</pubDate><guid>https://redscarf.me/lombok/</guid><description>&lt;h2 id="介绍">介绍&lt;/h2>
-&lt;p>&lt;code>Lombok&lt;/code> 是提升 Java 编码效率常用的工具，借助它开发人员可以使用注解来自动生成一些模版代码。比如 &lt;code>getter&lt;/code>、&lt;code>setter&lt;/code>、&lt;code>equals&lt;/code>、&lt;code>toString&lt;/code> 等方法。&lt;/p>
-&lt;h2 id="安装">安装&lt;/h2>
-&lt;h3 id="在-maven-中添加依赖">在 maven 中添加依赖&lt;/h3>
-&lt;pre tabindex="0">&lt;code>&amp;lt;dependency&amp;gt;
- &amp;lt;groupId&amp;gt;org.projectlombok&amp;lt;/groupId&amp;gt;
- &amp;lt;artifactId&amp;gt;lombok&amp;lt;/artifactId&amp;gt;
- &amp;lt;version&amp;gt;1.18.4&amp;lt;/version&amp;gt;
- &amp;lt;scope&amp;gt;provided&amp;lt;/scope&amp;gt;
-&amp;lt;/dependency&amp;gt;
-&lt;/code>&lt;/pre>&lt;h3 id="在编辑器中添加插件">在编辑器中添加插件&lt;/h3>
-&lt;p>如：Intellij Idea，在 setting 的 plugin 里搜索lombok plugin，安装插件&lt;/p>
-&lt;h2 id="使用">使用&lt;/h2>
-&lt;p>&lt;strong>常用的几个注解&lt;/strong>&lt;/p>
-&lt;p>@Data ：注在类上，自动生成类的 get、set、equals、hashCode、canEqual、toString 方法&lt;/p>
-&lt;p>@AllArgsConstructor ：注在类上，自动生成类的全参构造方法&lt;/p>
-&lt;p>@NoArgsConstructor ：注在类上，自动生成类的无参构造&lt;/p>
-&lt;p>@Setter ：注在属性上，自动生成 set 方法&lt;/p>
-&lt;p>@Getter ：注在属性上，自动生成 get 方法&lt;/p>
-&lt;p>@EqualsAndHashCode ：注在类上，自动生成对应的 equals 和 hashCode 方法&lt;/p>
-&lt;p>@Log4j/@Slf4j ：注在类上，自动生成对应的 Logger 对象，变量名为 log&lt;/p>
-&lt;p>@Cleanup(&amp;ldquo;close&amp;rdquo;)：注在本地变量上，自动释放资源（如：关闭 InputStream）&lt;/p>
-&lt;p>@Synchronized：注在方法上，自动生成一个私有锁变量&lt;/p>
-&lt;p>@SneakyThrows：自动生成异常处理语句&lt;/p>
-&lt;blockquote>
-&lt;p>&lt;strong>注意继承关系中使用 Lombok&lt;/strong> &lt;code>@EqualsAndHashCode&lt;/code> 与 &lt;code>@ToString&lt;/code> 注解默认情况下忽略父类的成员变量。譬如打印时 &lt;code>toString&lt;/code> 返回的结果中缺少父类的成员变量，解决办法是在注解中设置 &lt;code>callSuper&lt;/code> 属性为 &lt;code>true&lt;/code>， &lt;code>@ToString(callSuper = true)&lt;/code> 、&lt;code>@EqualsAndHashCode(callsuper = true)&lt;/code>。&lt;/p></description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Java on Haisheng Wu's Tech Blog</title><link>https://redscarf.me/categories/java/</link><description>Recent content in Java on Haisheng Wu's Tech Blog</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Thu, 27 Jan 2022 20:56:50 +1000</lastBuildDate><atom:link href="https://redscarf.me/categories/java/index.xml" rel="self" type="application/rss+xml"/><item><title>Kafka 总结</title><link>https://redscarf.me/kafka-1/</link><pubDate>Thu, 27 Jan 2022 20:56:50 +1000</pubDate><guid>https://redscarf.me/kafka-1/</guid><description>consumer 是推还是拉？ https://kafka.apache.org/documentation/#design_pull kafka 生产者端生成消息推送（push）到 broker，消费者端从 broker 拉取（pull）消息。
+统一采用 pull 的方式？ boker 从生产者 pull 消息。在生产者数量庞大的场景下，broker 需要管理维护很多的关系，简直是梦魇。所以采用的是生产者往 broker push 消息。
+统一采用 push 的方式？ broker 往 consumer push 消息。在 consumer 多样化的场景下，如果生产者的生产速率远远大于消费者，broker 控制不好，push 会造成 consumer 不堪重负。反之，由 consumer 根据自身处理速率来决定何时从 broker 拉取消息，会更好。采用 pull 的弊端在于，如果 broker 没有消息，那么就会空转，这可以通过在调用 poll 接口时传入等待时间阻塞或者传入批次数据包大小来等待阻塞。
+kafka 的 ack 机制 客户端连接到 leader broker 上，发送消息之后，等待或不等待 leader broker 的 ack（是否等待取决于参数request.required.acks 配置）。比如： 客户端设置 acks=0，客户端不作任何等待，即使消息没有写入 kafka 集群。 客户端设置 acks=1，客户端会等待 Leader 副本成功写入后返回的确认，但如果 Leader 副本在消息被同步到其他副本之前崩溃，消息可能会丢失。 客户端设置 acks=all 或 acks=-1参数，leader 在接收到客户端的消息之后，先写入日志文件，然后往同步副本（ISR）发送数据，等所有的 follower 都确认消息写入成功后，leader 再给客户端发送 ack 确认。</description></item><item><title>Lombok</title><link>https://redscarf.me/lombok/</link><pubDate>Thu, 30 Apr 2020 19:10:32 +0100</pubDate><guid>https://redscarf.me/lombok/</guid><description>介绍 Lombok 是提升 Java 编码效率常用的工具，借助它开发人员可以使用注解来自动生成一些模版代码。比如 getter、setter、equals、toString 等方法。
+安装 在 maven 中添加依赖 &amp;lt;dependency&amp;gt; &amp;lt;groupId&amp;gt;org.projectlombok&amp;lt;/groupId&amp;gt; &amp;lt;artifactId&amp;gt;lombok&amp;lt;/artifactId&amp;gt; &amp;lt;version&amp;gt;1.18.4&amp;lt;/version&amp;gt; &amp;lt;scope&amp;gt;provided&amp;lt;/scope&amp;gt; &amp;lt;/dependency&amp;gt; 在编辑器中添加插件 如：Intellij Idea，在 setting 的 plugin 里搜索lombok plugin，安装插件
+使用 常用的几个注解
+@Data ：注在类上，自动生成类的 get、set、equals、hashCode、canEqual、toString 方法
+@AllArgsConstructor ：注在类上，自动生成类的全参构造方法
+@NoArgsConstructor ：注在类上，自动生成类的无参构造
+@Setter ：注在属性上，自动生成 set 方法
+@Getter ：注在属性上，自动生成 get 方法
+@EqualsAndHashCode ：注在类上，自动生成对应的 equals 和 hashCode 方法
+@Log4j/@Slf4j ：注在类上，自动生成对应的 Logger 对象，变量名为 log
+@Cleanup(&amp;ldquo;close&amp;rdquo;)：注在本地变量上，自动释放资源（如：关闭 InputStream）
+@Synchronized：注在方法上，自动生成一个私有锁变量
+@SneakyThrows：自动生成异常处理语句
+注意继承关系中使用 Lombok @EqualsAndHashCode 与 @ToString 注解默认情况下忽略父类的成员变量。譬如打印时 toString 返回的结果中缺少父类的成员变量，解决办法是在注解中设置 callSuper 属性为 true， @ToString(callSuper = true) 、@EqualsAndHashCode(callsuper = true)。</description></item></channel></rss>

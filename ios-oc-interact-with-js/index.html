@@ -1,0 +1,129 @@
+<!doctype html><html class=no-js lang=zh-cn><head><meta charset=UTF-8><meta name=viewport content="width=device-width,initial-scale=1"><meta http-equiv=X-UA-Compatible content="IE=edge"><title>OC 与 JS 通信的几种方式 - Haisheng Wu's Tech Blog</title>
+<script>(function(e,t){e[t]=e[t].replace("no-js","js")})(document.documentElement,"className")</script><meta name=description content="Example article description"><meta property="og:title" content="OC 与 JS 通信的几种方式"><meta property="og:description" content="Example article description"><meta property="og:type" content="article"><meta property="og:url" content="https://redscarf.me/ios-oc-interact-with-js/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2017-06-23T22:57:25+10:00"><meta property="article:modified_time" content="2017-06-23T22:57:25+10:00"><meta itemprop=name content="OC 与 JS 通信的几种方式"><meta itemprop=description content="Example article description"><meta itemprop=datePublished content="2017-06-23T22:57:25+10:00"><meta itemprop=dateModified content="2017-06-23T22:57:25+10:00"><meta itemprop=wordCount content="266"><meta itemprop=keywords content="iOS,JavaScript,"><meta name=twitter:card content="summary"><meta name=twitter:title content="OC 与 JS 通信的几种方式"><meta name=twitter:description content="Example article description"><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/custom.css><link rel="shortcut icon" href=/favicon.ico></head><body class=body><header class=header><div class="logo logo--mixed"><div class=container><a class=logo__link href=/ title="Haisheng Wu's Blog" rel=home><div class="logo__item logo__imagebox"><img class=logo__img src=/logo.png></div><div class="logo__item logo__text"><div class=logo__title>Haisheng Wu's Blog</div><div class=logo__tagline>Tech Blog</div></div></a></div></div></header><div class=divider></div><div class="container wrapper flex"><div class=primary><main class=main role=main><article class=post><header class=post__header><h1 class=post__title>OC 与 JS 通信的几种方式</h1><div class="post__meta meta"><div class="meta__item-datetime meta__item"><svg class="meta__icon icon icon-time" width="16" height="14" viewBox="0 0 30 28"><path d="M15 0C7 0 1 6 1 14s6 14 14 14 14-6 14-14S23 0 15 0zm0 25C9 25 4 20 4 14S9 3 15 3s11 5 11 11-5 11-11 11zm1-18h-2v8.4l6.8 4.4L22 18l-6-3.8V7z"/></svg><time class=meta__text datetime=2017-06-23T22:57:25+10:00>2017-06-23</time></div><div class="meta__item-categories meta__item"><svg class="meta__icon icon icon-category" width="16" height="16" viewBox="0 0 16 16"><path d="m7 2 1 2h8v11H0V2z"/></svg><span class=meta__text><a class=meta__link href=/categories/ios/ rel=category>IOS</a>, <a class=meta__link href=/categories/tech/ rel=category>Tech</a></span></div></div></header><div class="post__toc toc"><div class=toc__title>目录</div><div class=toc__menu><nav id=TableOfContents></nav></div></div><div class="content post__content clearfix"><ol><li>在代理方法中拦截协议</li><li>使用 JavaScriptCore</li><li>WKWebView 的 WKScriptMessagehandler</li><li>使用 NSURLProtocol 拦截请求</li><li>使用第三方库 WebViewJavascriptBridge</li><li>使用 WebSocket</li></ol><p>这里只介绍第 6 种，其它的相关资料网上有很多。</p><p>使用 WebSocket 的方式需要在应用内起一个 websocket server 服务（有很多第三方的 websocket server 库），html 页面通过 Websocket 连接到服务，接着就是发送消息了，剩下的就跟代理方法拦截协议类似。</p><pre tabindex=0><code>// OC code, 以 PocketSocket 这个库为例
+_socketServer = [PSWebSocketServer serverWithHost:nil port:9001];
+_socketServer.delegate = self;
+_socketServer.delegateQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+[_socketServer start];
+    
+#pragma mark - PSWebSocketServerDelegate
+- (void)serverDidStart:(PSWebSocketServer *)server 
+{
+    NSLog(@&#34;Server did start…&#34;);
+}
+
+- (void)serverDidStop:(PSWebSocketServer *)server 
+{
+    NSLog(@&#34;Server did stop…&#34;);
+}
+
+- (BOOL)server:(PSWebSocketServer *)server acceptWebSocketWithRequest:(NSURLRequest *)request 
+{
+    NSLog(@&#34;Server should accept request: %@&#34;, request);
+    return YES;
+}
+
+- (void)server:(PSWebSocketServer *)server webSocket:(PSWebSocket *)webSocket didReceiveMessage:(id)message 
+{
+    // 在这里拦截
+    NSLog(@&#34;Server websocket did receive message: %@&#34;, message);
+    NSString *text = message;
+    NSURL *url = [NSURL URLWithString:text];
+    if ([url.scheme isEqualToString:@&#34;camera&#34;]) {
+        ......
+    }
+}
+
+- (void)server:(PSWebSocketServer *)server webSocketDidOpen:(PSWebSocket *)webSocket
+{
+    NSLog(@&#34;Server websocket did open&#34;);
+}
+
+- (void)server:(PSWebSocketServer *)server didFailWithError:(NSError *)error
+{
+    NSLog(@&#34;Server did fail with error: %@&#34;, error);
+}
+
+- (void)server:(PSWebSocketServer *)server webSocket:(PSWebSocket *)webSocket didCloseWithCode:(NSInteger)code reason:(NSString *)reason wasClean:(BOOL)wasClean 
+{
+    NSLog(@&#34;Server websocket did close with code: %@, reason: %@, wasClean: %@&#34;, @(code), reason, @(wasClean));
+}
+
+- (void)server:(PSWebSocketServer *)server webSocket:(PSWebSocket *)webSocket didFailWithError:(NSError *)error 
+{
+    NSLog(@&#34;Server websocket did fail with error: %@&#34;, error);
+}	
+</code></pre><pre tabindex=0><code>// JS code 
+var wsServer = &#39;ws://localhost:9001&#39;; 
+var websocket = new WebSocket(wsServer); 
+websocket.onopen = function (evt) { onOpen(evt) }; 
+websocket.onclose = function (evt) { onClose(evt) }; 
+websocket.onmessage = function (evt) { onMessage(evt) }; 
+websocket.onerror = function (evt) { onError(evt) };
+
+function onOpen(evt) { 
+	console.log(&#34;Connected to WebSocket server.&#34;); 
+}
+function onClose(evt) { 
+	console.log(&#34;Disconnected&#34;); 
+} 
+function onMessage(evt) {
+	console.log(&#34;Recieve data: &#34; + evt.data); 
+} 
+function onError(evt) { 
+	console.log(&#39;Error occured: &#39; + evt.data); 
+}
+
+// 发送消息
+websocket.send(&#34;camera://openCamera?index=1&amp;quality=high&amp;callback=callbackFunction);
+function callbackFunction(data){
+	
+}
+</code></pre><p>参考：</p><p><a href=https://www.raywenderlich.com/124075/javascriptcore-tutorial>javascriptcore</a></p><p><a href=http://nshipster.com/wkwebkit/>WKWebView</a></p><p><a href=https://developer.apple.com/library/content/samplecode/CustomHTTPProtocol/Introduction/Intro.html>自定义 NSURLProtocol</a></p><p><a href=https://github.com/marcuswestin/WebViewJavascriptBridge>WebViewJavascriptBridge</a></p><p><a href=https://zh.wikipedia.org/wiki/WebSocket>WebSocket</a></p></div><footer class=post__footer><div class="post__tags tags clearfix"><svg class="tags__badge icon icon-tag" width="16" height="16" viewBox="0 0 32 32"><path d="M32 19c0 1-1 2-1 2L21 31s-1 1-2 1-2-1-2-1L2 16c-1-1-1.4-2-1.4-2S0 12.5.0 11V3C0 1.5.8.8.8.8S1.5.0 3 0h8c1.5.0 3 .6 3 .6S15 1 16 2l15 15s1 1 1 2zM7 10a3 3 0 100-6 3 3 0 000 6z"/></svg><ul class=tags__list><li class=tags__item><a class="tags__link btn" href=/tags/ios/ rel=tag>iOS</a></li><li class=tags__item><a class="tags__link btn" href=/tags/javascript/ rel=tag>JavaScript</a></li></ul></div></footer></article></main><div class="authorbox clearfix"><p class=authorbox__warning><strong>WARNING:</strong> Authorbox is activated, but [Author] parameters are not specified.</p></div><nav class="pager flex"><div class="pager__item pager__item--prev"><a class=pager__link href=/three-common-mistakes-of-the-first-time-tech-lead/ rel=prev><span class=pager__subtitle>«&#8201;上一篇</span><p class=pager__title>第一次成为技术主管易犯的3个常见错误</p></a></div><div class="pager__item pager__item--next"><a class=pager__link href=/android-first-line-code-note/ rel=next><span class=pager__subtitle>下一篇&#8201;»</span><p class=pager__title>《第一行代码》</p></a></div></nav></div><aside class="sidebar sidebar--left"><div class="widget-search widget"><form class=widget-search__form role=search method=get action=https://google.com/search><label><input class=widget-search__field type=search placeholder=搜索... name=q aria-label=搜索...>
+</label><input class=widget-search__submit type=submit value=Search>
+<input type=hidden name=sitesearch value=https://redscarf.me/></form></div><div class="widget-recent widget"><h4 class=widget__title>近期文章</h4><div class=widget__content><ul class=widget__list><li class=widget__item><a class=widget__link href=/economy-fp-hsbc/>付鹏11月24日在HSBC内部演讲速记</a></li><li class=widget__item><a class=widget__link href=/db-dynamic-column/>数据库的动态列</a></li><li class=widget__item><a class=widget__link href=/multi-tenant/>多租户</a></li><li class=widget__item><a class=widget__link href=/prompt-template/>Prompt 框架模版</a></li><li class=widget__item><a class=widget__link href=/kafka-1/>Kafka 总结</a></li></ul></div></div><div class="widget-categories widget"><h4 class=widget__title>分类</h4><div class=widget__content><ul class=widget__list><li class=widget__item><a class=widget__link href=/categories/ai/>AI</a></li><li class=widget__item><a class=widget__link href=/categories/android/>Android</a></li><li class=widget__item><a class=widget__link href=/categories/c/>C</a></li><li class=widget__item><a class=widget__link href=/categories/db/>DB</a></li><li class=widget__item><a class=widget__link href=/categories/diary/>Diary</a></li><li class=widget__item><a class=widget__link href=/categories/docker/>Docker</a></li><li class=widget__item><a class=widget__link href=/categories/ios/>IOS</a></li><li class=widget__item><a class=widget__link href=/categories/java/>Java</a></li><li class=widget__item><a class=widget__link href=/categories/news/>News</a></li><li class=widget__item><a class=widget__link href=/categories/tech/>Tech</a></li><li class=widget__item><a class=widget__link href=/categories/web/>Web</a></li><li class=widget__item><a class=widget__link href=/categories/%E7%BF%BB%E8%AF%91/>翻译</a></li><li class=widget__item><a class=widget__link href=/categories/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/>读书笔记</a></li></ul></div></div><div class="widget-taglist widget"><h4 class=widget__title>标签</h4><div class=widget__content><a class="widget-taglist__link widget__link btn" href=/tags/android/ title=Android>Android (2)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/arc/ title=ARC>ARC (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/autolayout/ title=AutoLayout>AutoLayout (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/block/ title=Block>Block (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/bluetooth/ title=Bluetooth>Bluetooth (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/c/ title=C>C (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/chatgpt/ title=ChatGPT>ChatGPT (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/container/ title=Container>Container (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/db/ title=DB>DB (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/devops/ title=Devops>Devops (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/diary/ title=Diary>Diary (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/docker/ title=Docker>Docker (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/dynamic/ title=Dynamic>Dynamic (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/economy/ title=Economy>Economy (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/gcd/ title=GCD>GCD (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/gradle/ title=Gradle>Gradle (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/hook/ title=Hook>Hook (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/ios/ title=IOS>IOS (13)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/java/ title=Java>Java (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/javascript/ title=JavaScript>JavaScript (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/kafka/ title=Kafka>Kafka (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/management/ title=Management>Management (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/mariadb/ title=Mariadb>Mariadb (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/multi-tenant/ title=Multi-Tenant>Multi-Tenant (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/mysql/ title=MySQL>MySQL (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/nginx/ title=Nginx>Nginx (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/notification/ title=Notification>Notification (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/plugin/ title=Plugin>Plugin (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/privacy/ title=Privacy>Privacy (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/prompt/ title=Prompt>Prompt (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/python/ title=Python>Python (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/saas/ title=SAAS>SAAS (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/security/ title=Security>Security (2)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/terminology/ title=Terminology>Terminology (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/token/ title=Token>Token (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/tool/ title=Tool>Tool (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/web/ title=Web>Web (2)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/webview/ title=WebView>WebView (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E4%B8%AD%E9%97%B4%E4%BB%B6/ title=中间件>中间件 (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/ title=源码剖析>源码剖析 (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E7%BF%BB%E8%AF%91/ title=翻译>翻译 (2)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/ title=读书笔记>读书笔记 (1)</a>
+<a class="widget-taglist__link widget__link btn" href=/tags/%E8%BD%AC%E8%BD%BD/ title=转载>转载 (1)</a></div></div><div class="widget-social widget"><h4 class="widget-social__title widget__title">社交</h4><div class="widget-social__content widget__content"><div class="widget-social__item widget__item"><a class="widget-social__link widget__link btn" title=GitHub rel="noopener noreferrer" href=https://github.com/iCocoa target=_blank><svg class="widget-social__link-icon icon icon-github" width="24" height="24" viewBox="0 0 384 374"><path d="m192 0C85.9.0.0 85.8.0 191.7c0 84.7 55 156.6 131.3 181.9 9.6 1.8 13.1-4.2 13.1-9.2.0-4.6-.2-16.6-.3-32.6-53.4 11.6-64.7-25.7-64.7-25.7-8.7-22.1-21.3-28-21.3-28-17.4-11.9 1.3-11.6 1.3-11.6 19.3 1.4 29.4 19.8 29.4 19.8 17.1 29.3 44.9 20.8 55.9 15.9 1.7-12.4 6.7-20.8 12.2-25.6-42.6-4.8-87.5-21.3-87.5-94.8.0-20.9 7.5-38 19.8-51.4-2-4.9-8.6-24.3 1.9-50.7.0.0 16.1-5.2 52.8 19.7 15.3-4.2 31.7-6.4 48.1-6.5 16.3.1 32.7 2.2 48.1 6.5 36.7-24.8 52.8-19.7 52.8-19.7 10.5 26.4 3.9 45.9 1.9 50.7 12.3 13.4 19.7 30.5 19.7 51.4.0 73.7-44.9 89.9-87.7 94.6 6.9 5.9 13 17.6 13 35.5.0 25.6-.2 46.3-.2 52.6.0 5.1 3.5 11.1 13.2 9.2C329 348.2 384 276.4 384 191.7 384 85.8 298 0 192 0z"/></svg>
+<span>GitHub</span></a></div><div class="widget-social__item widget__item"><a class="widget-social__link widget__link btn" title=Email href=mailto:whs543@sina.com><svg class="widget-social__link-icon icon icon-mail" width="24" height="24" viewBox="0 0 416 288"><path d="m0 16v256 16h16 384 16v-16V16 0h-16H16 0zm347 16-139 92.5L69 32zM199 157.5l9 5.5 9-5.5L384 46v210H32V46z"/></svg>
+<span>whs543@sina.com</span></a></div></div></div></aside></div><footer class=footer><div class="container footer__container flex"><div class=footer__copyright>&copy; 2024 Haisheng Wu.
+<span class=footer__copyright-credits>基于 <a href=https://gohugo.io/ rel="nofollow noopener" target=_blank>Hugo</a> 引擎和 <a href=https://github.com/pfadfinder-konstanz/hugo-dpsg/ rel="nofollow noopener" target=_blank>DPSG</a>主題</span>
+<span><a href=/imprint>Imprint and Privacy</a></span></div><div class=footer__copyright>Donate!</div></div></footer><script async defer src=/js/menu.js></script><script src=/js/custom.js></script></body></html>
