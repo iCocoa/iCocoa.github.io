@@ -1,3 +1,3 @@
-[submodule "themes/hugo-dpsg"]
-	path = themes/hugo-dpsg
+[submodule "themes/my-hugo-dpsg"]
+	path = themes/my-hugo-dpsg
 	url = https://github.com/iCocoa/hugo-dpsg.git

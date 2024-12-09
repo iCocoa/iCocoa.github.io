@@ -5,7 +5,7 @@ defaultContentLanguage = "zh-cn"
 # Number of posts per page
 [pagination]
   pagerSize = 10
-theme = "hugo-dpsg"
+theme = "my-hugo-dpsg"
 ignoreLogs = ['warning-goldmark-raw-html']
 
 [Author] # Used in authorbox
