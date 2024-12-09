@@ -29,7 +29,7 @@ jobs:
         run: sudo snap install dart-sass
 
       - name: Build
-        run: hugo --minify --theme hugo-dpsg
+        run: hugo --minify --theme my-hugo-dpsg
 
       - name: Check public directory
         run: |
