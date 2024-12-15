@@ -8,7 +8,7 @@ categories:
 - News
 description: Example article description
 sidebar: left
-hiddenFromHomePage: false
+hiddenFromHomePage: true
 ---
 
 
