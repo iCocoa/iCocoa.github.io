@@ -115,3 +115,11 @@ ignoreLogs = ['warning-goldmark-raw-html']
   section = ["HTML", "RSS"]
   taxonomy = ["HTML", "RSS"]
   #taxonomyTerm = ["HTML"]
+
+[[module.mounts]]
+source = 'static'
+target = 'static'
+
+[[module.mounts]]
+source = 'images'
+target = 'static/images'
