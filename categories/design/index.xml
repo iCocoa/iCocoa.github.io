@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Design on Haisheng Wu's Tech Blog</title><link>https://redscarf.me/categories/design/</link><description>Recent content in Design on Haisheng Wu's Tech Blog</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 11 Jan 2025 20:15:32 +1000</lastBuildDate><atom:link href="https://redscarf.me/categories/design/index.xml" rel="self" type="application/rss+xml"/><item><title>抽象泄露法则</title><link>https://redscarf.me/code-leaky-abstractions/</link><pubDate>Sat, 11 Jan 2025 20:15:32 +1000</pubDate><guid>https://redscarf.me/code-leaky-abstractions/</guid><description>在 AI 时代，开发效率大幅提升。某团队借助 AI 辅助开发，仅用 5 分钟便完成了一个新功能的开发，初看运行正常。然而，在某些特定场景下，功能却出现了意料之外的问题。团队花了半天时间排查，才发现问题的根源深藏于底层实现之中——本以为可以忽略的细节，最终却成了最大的坑。
 另一边，某系统突发线上故障，业务开发人员求助平台开发人员，期待快速定位问题。然而，平台开发人员查看后表示：“底层代码没有问题，业务侧再看看。” 业务开发团队只好继续摸索，试图在复杂的调用链与抽象层中找到线索。原本清晰分工的技术栈，在关键时刻变得模糊不清，底层的复杂性不可避免地泄露出来。
 软件世界就是一层抽象套着另一层抽象的千层饼，就好像 HTTP 协议下有 TCP、TCP 下有 IP，每一层抽象都声称自己是完美的：“你无需关注在我之下的任何细节”。
-但事实却是，所有抽象必定泄露。而当抽象泄露时，就像要从 AI 的 1000 行代码里找到那个错误——事情非常棘手，但我们别无选择。
+但事实却是，所有抽象必定泄露。而当抽象泄露时，就像要从 AI 生成的 1000 行代码里找到那个错误——事情非常棘手，但我们别无选择。
 早在 2002 年，程序员 Joel Spolsky 就敏锐地发现了这类现象，并将它们总结为：“抽象泄露法则”。
 译文如下：
 抽象泄露法则 作者：Joel Spolsky
